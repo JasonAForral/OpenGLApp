@@ -1,22 +1,19 @@
 ﻿using System;
-using System.IO;
 using System.Numerics;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 
 using static CSGL.CSGL;   // csgl*
 using static CSGL.Glfw3;  // glfw*
 using static CSGL.OpenGL; // gl*
-using System.Text;
-using System.Linq;
 using OpenGLApp.src.Graphics.Shaders;
+using OpenGLApp.src.Graphics.Window;
+using OpenGLApp.src.Graphics.Buffers;
 
 namespace ConsoleApp1
 {
     public class Program
     {
         private const float sin60 = 0.866025388240814208984375f;
-        static bool err = false;
         static Program singleton = null;
 
         int width, height;
@@ -24,6 +21,7 @@ namespace ConsoleApp1
         Stack<Matrix4x4> matrixStack;
         Matrix4x4 view;
         Matrix4x4 world;
+        Window window;
 
         public static void Main(params string[] args)
         {
@@ -121,7 +119,8 @@ namespace ConsoleApp1
                 4, 7, 6, 6, 5, 4,
                 4, 0, 3, 3, 7, 4,
                 1, 5, 6, 6, 2, 1,
-
+                3, 2, 6, 6, 7, 3,
+                0, 4, 5, 5, 1, 0,
             };
 #endif
             csglLoadGlfw();
@@ -131,11 +130,11 @@ namespace ConsoleApp1
 
             if (args.Length > 0)
                 title = args[0];
-
-            IntPtr window = glfwCreateWindow(width, height, title, NULL, NULL);
-            if (window == null)
+            window = new Window(width, height, title, monitor: NULL, share: NULL);
+            IntPtr win = glfwCreateWindow(width, height, title, monitor: NULL,share: NULL);
+            if (win == null)
                 return;
-            glfwMakeContextCurrent(window);
+            glfwMakeContextCurrent(win);
             csglLoadGL();
 
             //glClearColor(0.125f, 0.125f, 0.125f, 0.5f);
@@ -152,7 +151,6 @@ namespace ConsoleApp1
             matrixStack.Push(world * matrixStack.Peek());
             matrixStack.Push(view * matrixStack.Peek());
 
-            uint vao = 0;
             uint vertexBuffer = 0;
             uint indexBuffer = 0;
             uint positionLocation = 0;
@@ -202,51 +200,12 @@ void main() {
     outColor = vec4(fragPosition, 1.0);
 }";
 
-            uint program = glCreateProgram();
-            uint vertexShader = new Shader(GL_VERTEX_SHADER, vert).Id;
-            uint fragShader = new Shader(GL_FRAGMENT_SHADER, frag).Id;
+            ShaderProgram program = new ShaderProgram(vert, frag);
 
-            //fixed (char* fragPtr = frag)
-            //{
-            //    uint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-            //}
-            glAttachShader(program, vertexShader);
-            glAttachShader(program, fragShader);
+            glUseProgram(program.Id);
 
-            if (vertexShader == 0 || fragShader == 0)
-                return;
-
-            glLinkProgram(program);
-
-            glValidateProgram(program);
-
-            int isLinked = 0;
-
-            glGetProgramiv(program, GL_LINK_STATUS, ref isLinked);
-            if (isLinked == 0)
-            {
-                int loglen = 0;
-                glGetProgramiv(program, GL_INFO_LOG_LENGTH, ref loglen);
-
-                IntPtr log = Marshal.AllocHGlobal(loglen);
-
-                glGetProgramInfoLog(program, loglen, ref loglen, log);
-
-                char[] chrs = new char[loglen];
-                string logs = null;
-                Marshal.Copy(log, chrs, 0, loglen);
-                logs.Concat(chrs.AsEnumerable());
-                Marshal.FreeHGlobal(log);
-                Console.Error.WriteLine(logs);
-
-                err = true;
-                return;
-            }
-
-            glUseProgram(program);
-
-            glGenVertexArrays(1, ref vao);
-            glBindVertexArray(vao);
+            VertexArray vao = new VertexArray();
+            vao.Bind();
 
             glGenBuffers(1, ref vertexBuffer);
             glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
@@ -280,13 +239,13 @@ void main() {
                 }
             }
 
-            positionLocation = (uint) glGetAttribLocation(program, "inPosition");
+            positionLocation = (uint) glGetAttribLocation(program.Id, "inPosition");
             glEnableVertexAttribArray(positionLocation);
             glVertexAttribPointer(positionLocation, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, NULL);
 
-            uint ubo_location = glGetUniformBlockIndex(program, "UniformBufferObject");
+            uint ubo_location = glGetUniformBlockIndex(program.Id, "UniformBufferObject");
 
-            glUniformBlockBinding(program, ubo_location, 0);
+            glUniformBlockBinding(program.Id, ubo_location, 0);
 
             uint ubo = 0;
             glGenBuffers(1, ref ubo);
@@ -296,7 +255,7 @@ void main() {
 
             glBindBufferRange(GL_UNIFORM_BUFFER, 0, ubo, 0, 48 * sizeof(float));
 
-            glfwSetWindowSizeCallback(window, WindowSizeCallback);
+            glfwSetWindowSizeCallback(win, WindowSizeCallback);
 
 
             unsafe
@@ -308,16 +267,18 @@ void main() {
                 glBufferSubData(GL_UNIFORM_BUFFER, 32 * sizeof(float), 16 * sizeof(float), new IntPtr(&world.M11));
             }
 
-            float inverseAspect = height / (float)width;
-            float x = sin60 * inverseAspect;
             float deltaAngle = 1 / 1024f;
             Matrix4x4 changer = Matrix4x4.CreateRotationY(deltaAngle);
 
-            while (glfwWindowShouldClose(window) == 0)
+            float x = 2 * sin60;
+
+            while (glfwWindowShouldClose(win) == 0)
             {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-                model *= Matrix4x4.CreateRotationY(deltaAngle);
+                model *= Matrix4x4.CreateRotationX(deltaAngle);
+                //model *= Matrix4x4.CreateRotationZ(deltaAngle);
+                //model *= Matrix4x4.CreateRotationY(deltaAngle * 1.31f);
                 Matrix4x4 mvp = model * matrixStack.Peek();
 
                 unsafe
@@ -325,8 +286,6 @@ void main() {
                     glBufferSubData(GL_UNIFORM_BUFFER, 0 * sizeof(float), 16 * sizeof(float), new IntPtr(&mvp.M11));
                 }
 
-
-                glColor3f(0.1875f, 0.375f, 0.5625f);
                 glDrawElements(GL_TRIANGLES, indices.Length, GL_UNSIGNED_INT, NULL);
 
                 //glScalef(sin60, sin60, sin60);
@@ -336,23 +295,21 @@ void main() {
 
                 glBegin(GL_TRIANGLES);
 
-                glColor3f(1, 0, 0);
-                glVertex3f(0, 1, -0.0625f);
-                glColor3f(0, 1, 0);
-                glVertex3f(-x, -0.5f, -0.0625f);
-                glColor3f(0, 0, 1);
-                glVertex3f(x, -0.5f, -0.0625f);
+                glVertex3f(0, 2, -1);
+                glVertex3f(x, -1, -1);
+                glVertex3f(-x, -1, -1);
 
-                glColor3f(1, 0, 0);
-                glVertex3f(0, 1, 0.0625f);
-                glColor3f(0, 0, 1);
-                glVertex3f(x, -0.5f, 0.0625f);
-                glColor3f(0, 1, 0);
-                glVertex3f(-x, -0.5f, 0.0625f);
+                glVertex3f(0, 2, 1);
+                glVertex3f(-x, -1, 1);
+                glVertex3f(x, -1, 1);
+
+                glVertex3f(0, -2, 1);
+                glVertex3f(x, 1, 1);
+                glVertex3f(-x, 1, 1);
 
                 glEnd();
 
-                glfwSwapBuffers(window);
+                glfwSwapBuffers(win);
                 glfwPollEvents();
             }
 
@@ -364,88 +321,6 @@ void main() {
             //        Console.WriteLine(arg);
             //}
             glfwTerminate();
-        }
-
-
-
-        private static uint CreateShader(string shaderScript, uint shaderType)
-        {
-#if true
-            uint shaderID = glCreateShader(shaderType);
-            IntPtr scriptPtr = Marshal.AllocHGlobal(shaderScript.Length);
-            Marshal.Copy(Encoding.ASCII.GetBytes(shaderScript), 0, scriptPtr, shaderScript.Length);
-
-            int length = shaderScript.Length;
-
-            glShaderSource(shaderID, 1, ref scriptPtr, ref length);
-            glCompileShader(shaderID);
-
-            Marshal.FreeHGlobal(scriptPtr);
-
-            int isCompiled = 0;
-
-            glGetShaderiv(shaderID, GL_COMPILE_STATUS, ref isCompiled);
-
-            if (isCompiled == 0)
-            {
-                int loglen = 0;
-                glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, ref loglen);
-
-                IntPtr log = Marshal.AllocHGlobal(loglen);
-
-                glGetShaderInfoLog(shaderID, loglen, ref loglen, log);
-
-                char[] chrs = new char[loglen];
-                string logs = "";
-                Marshal.Copy(log, chrs, 0, loglen);
-                logs.Concat(chrs.AsEnumerable());
-                Marshal.FreeHGlobal(log);
-                Console.Error.WriteLine(logs);
-
-                err = true;
-                return 0;
-            }
-            return shaderID;
-#else
-            unsafe
-            {
-                char[] charArray = shaderScript.ToCharArray();
-                uint shaderID = glCreateShader(shaderType);
-                fixed (char* vertPtr = charArray)
-                {
-
-                    IntPtr ptr = new IntPtr(vertPtr);
-                    int length = charArray.Length;
-                    glShaderSource(shaderID, 1, ref ptr, ref length);
-                    glCompileShader(shaderID);
-                    Console.WriteLine($"null terminated: {charArray[^1] == 0}");
-                    Console.WriteLine($"length of string: {shaderScript.Length}");
-                    Console.WriteLine($"length of length: {length}");
-
-                    int result = 0;
-                    glGetShaderiv(shaderID, GL_COMPILE_STATUS, ref result);
-                    if (GL_FALSE == result)
-                    {
-                        //int lengthA;
-                        length = 0;
-                        glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, ref length);
-                        Console.WriteLine($"length {length}");
-                        char[] message = new char[length];
-                        fixed (char* msgPtr = message)
-                        {
-                            ptr = new IntPtr(msgPtr);
-                            glGetShaderInfoLog(shaderID, length * sizeof(char), ref length, ptr);
-                            Console.WriteLine("Failed to compile shader!");
-                            Console.WriteLine(message);
-                        }
-                        glDeleteShader(shaderID);
-                        return 0;
-                    }
-
-                }
-                return shaderID;
-            }
-#endif
         }
 
         private static void WindowSizeCallback(IntPtr _, int w, int h)
