@@ -1,6 +1,6 @@
 using System;
 
-namespace ConsoleApp1.src.DataClasses
+namespace OpenGLApp.src.DataClasses
 {
 
     public abstract class User

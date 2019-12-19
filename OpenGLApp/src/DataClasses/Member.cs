@@ -2,7 +2,7 @@ using System;
 
 #if HAD
 #else
-namespace ConsoleApp1.src.DataClasses
+namespace OpenGLApp.src.DataClasses
 {
 
   public class Member : User
