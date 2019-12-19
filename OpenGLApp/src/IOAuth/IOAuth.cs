@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace OpenGLApp.src.IOAuth
+namespace ConsoleApp1.src.IOAuth
 {
     public class IOAuthj
     {

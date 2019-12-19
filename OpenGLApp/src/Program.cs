@@ -5,33 +5,30 @@ using System.Collections.Generic;
 using static CSGL.CSGL;   // csgl*
 using static CSGL.Glfw3;  // glfw*
 using static CSGL.OpenGL; // gl*
-using OpenGLApp.src.Graphics.Window;
 using OpenGLApp.src.Graphics.Shaders;
+using OpenGLApp.src.Graphics.Window;
 using OpenGLApp.src.Graphics.Buffers;
-using OpenGLApp.src.Graphics;
-using System.IO;
 
-namespace OpenGLApp
+namespace ConsoleApp1
 {
-
-    public class App
+    public class Program
     {
         private const float sin60 = 0.866025388240814208984375f;
-        static App singleton = null;
+        static Program singleton = null;
 
         int width, height;
         float fov;
         Stack<Matrix4x4> matrixStack;
         Matrix4x4 view;
         Matrix4x4 world;
-        //Window window;
+        Window window;
 
         public static void Main(params string[] args)
         {
-            new App().Start(args);
+            new Program().Start(args);
         }
 
-        public App()
+        public Program()
         {
             if (singleton == null)
                 singleton = this;
@@ -49,7 +46,6 @@ namespace OpenGLApp
             width = 1600;
             height = 900;
 #if false
-            List<Vertex> vertices1;
             string path = @"resources/models/triforce1.obj";
             if (!File.Exists(path))
                 return;
@@ -134,7 +130,7 @@ namespace OpenGLApp
 
             if (args.Length > 0)
                 title = args[0];
-            //window = new Window(width, height, title, monitor: NULL, share: NULL);
+            window = new Window(width, height, title, monitor: NULL, share: NULL);
             IntPtr win = glfwCreateWindow(width, height, title, monitor: NULL,share: NULL);
             if (win == null)
                 return;
@@ -148,15 +144,15 @@ namespace OpenGLApp
 
             Matrix4x4 model = Matrix4x4.Identity;
             view = Matrix4x4.CreateTranslation(0, 0, -3);
-            //world = Matrix4x4.CreatePerspectiveFieldOfView(fov, width / (float)height, 0.125f, 1024f);
+            world = Matrix4x4.CreatePerspectiveFieldOfView(fov, width / (float)height, 0.125f, 1024f);
             matrixStack = new Stack<Matrix4x4>();
 
-            ChangeFov(fov);
+            matrixStack.Push(Matrix4x4.Identity);
+            matrixStack.Push(world * matrixStack.Peek());
+            matrixStack.Push(view * matrixStack.Peek());
 
-            //matrixStack.Push(Matrix4x4.Identity);
-            //matrixStack.Push(world * matrixStack.Peek());
-            //matrixStack.Push(view * matrixStack.Peek());
-
+            uint vertexBuffer = 0;
+            uint indexBuffer = 0;
             uint positionLocation = 0;
             //uint normalLocation = 0;
 
@@ -209,9 +205,39 @@ void main() {
             glUseProgram(program.Id);
 
             VertexArray vao = new VertexArray();
+            vao.Bind();
 
-            StaticArrayBuffer vertexBuffer = new StaticArrayBuffer(vertices);
-            StaticElementBuffer indexBuffer = new StaticElementBuffer(indices);
+            glGenBuffers(1, ref vertexBuffer);
+            glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+
+            unsafe
+            {
+                fixed (float* vertexPtr = vertices)
+                {
+                    glBufferData(GL_ARRAY_BUFFER, vertices.Length * sizeof(float), new IntPtr(vertexPtr), GL_STATIC_DRAW);
+                }
+            }
+
+            glGenBuffers(1, ref vertexBuffer);
+            glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+
+            unsafe
+            {
+                fixed (float* vertexPtr = vertices)
+                {
+                    glBufferData(GL_ARRAY_BUFFER, vertices.Length * sizeof(float), new IntPtr(vertexPtr), GL_STATIC_DRAW);
+                }
+            }
+
+            glGenBuffers(1, ref indexBuffer);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+            unsafe
+            {
+                fixed (int* indexPtr = indices)
+                {
+                    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.Length * sizeof(int), new IntPtr(indexPtr), GL_STATIC_DRAW);
+                }
+            }
 
             positionLocation = (uint) glGetAttribLocation(program.Id, "inPosition");
             glEnableVertexAttribArray(positionLocation);
@@ -250,9 +276,9 @@ void main() {
             {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-                //model *= Matrix4x4.CreateRotationX(deltaAngle);
+                model *= Matrix4x4.CreateRotationX(deltaAngle);
                 //model *= Matrix4x4.CreateRotationZ(deltaAngle);
-                model *= Matrix4x4.CreateRotationY(deltaAngle);
+                //model *= Matrix4x4.CreateRotationY(deltaAngle * 1.31f);
                 Matrix4x4 mvp = model * matrixStack.Peek();
 
                 unsafe

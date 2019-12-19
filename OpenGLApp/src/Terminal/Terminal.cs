@@ -2,7 +2,7 @@
 using System.Collections;
 using static System.Console;
 
-namespace OpenGLApp.src.Terminal
+namespace ConsoleApp1.src.Terminal
 {
   public class Terminal
   {
