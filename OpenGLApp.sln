@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.29519.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenGLApp", "OpenGLApp\OpenGLApp.csproj", "{E275ED79-C09D-404C-BCD7-EA41FA37ED15}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenGLApp.Tests", "OpenGLApp.Tests\OpenGLApp.Tests.csproj", "{83A51099-DEFF-4304-BD66-8FF1D58550C2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenGLApp.Tests", "OpenGLApp.Tests\OpenGLApp.Tests.csproj", "{83A51099-DEFF-4304-BD66-8FF1D58550C2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

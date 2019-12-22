@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using System.Text;
 using static CSGL.CSGL;   // csgl*
+using static CSGL.Glfw3;  // glfw*
+using static CSGL.OpenGL; // gl*
 
 namespace OpenGLApp.src.Graphics.Window
 {
     class Window
     {
+        public IntPtr Id { get; }
         public int Width { get; set; }
         public int Height { get; set; }
         public string Title { get; set; }
@@ -20,6 +23,36 @@ namespace OpenGLApp.src.Graphics.Window
             this.Title = title;
             this.Monitor = monitor;
             this.Share = share;
+
+
+            csglLoadGlfw();
+            glfwInit();
+            Id = glfwCreateWindow(width, height, title, monitor: NULL,share: NULL);
+            if (Id == null)
+                return;
+            glfwMakeContextCurrent(Id);
+            csglLoadGL();
+#if DEBUG
+            int[] extensionCount = { 0 };
+            glGetIntegerv(GL_NUM_EXTENSIONS, extensionCount);
+            Console.WriteLine($"Extensions: {extensionCount[0]}");
+
+            for (uint i = 0; i < extensionCount[0]; ++i)
+            {
+                IntPtr extension = glGetStringi(GL_EXTENSIONS, i);
+                StringBuilder n = new StringBuilder();
+                unsafe
+                {
+                    byte* name = (byte*)extension.ToPointer();
+                    do
+                    {
+                        n.Append((char)*name);
+                    } while (*++name != 0);
+
+                    Console.WriteLine($"{i} : {n}");
+                }
+            }
+#endif
         }
     }
 }

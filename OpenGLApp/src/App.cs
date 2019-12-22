@@ -23,10 +23,11 @@ namespace OpenGLApp
         Stack<Matrix4x4> matrixStack;
         Matrix4x4 view;
         Matrix4x4 world;
-        //Window window;
+        Window window;
 
         public static void Main(params string[] args)
         {
+            Console.WriteLine(File.Exists("resources/models/triforce1.obj"));
             new App().Start(args);
         }
 
@@ -132,23 +133,16 @@ namespace OpenGLApp
                 0, 4, 5, 5, 1, 0,
             };
 #endif
-            csglLoadGlfw();
-            glfwInit();
             //glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); // Change this to your targeted major version
             //glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5); // Change this to your targeted minor version
 
             if (args.Length > 0)
                 title = args[0];
-            _ = new Window(width, height, title, monitor: NULL, share: NULL);
-            IntPtr win = glfwCreateWindow(width, height, title, monitor: NULL,share: NULL);
-            if (win == null)
-                return;
-            glfwMakeContextCurrent(win);
-            csglLoadGL();
+            window = new Window(width, height, title, monitor: NULL, share: NULL);
 
-            //glClearColor(0.125f, 0.125f, 0.125f, 0.5f);
+            glClearColor(0.125f, 0.125f, 0.125f, 1);
 
-            glEnable(GL_DEPTH_TEST);
+            //glEnable(GL_DEPTH_TEST);
             glEnable(GL_CULL_FACE);
 
             Matrix4x4 model = Matrix4x4.Identity;
@@ -231,7 +225,7 @@ void main() {
 
             glBindBufferRange(GL_UNIFORM_BUFFER, 0, ubo, 0, 48 * sizeof(float));
 
-            glfwSetWindowSizeCallback(win, (IntPtr _, int w, int h) => singleton.ResizeWindow(w, h));
+            glfwSetWindowSizeCallback(window.Id, (IntPtr _, int w, int h) => singleton.ResizeWindow(w, h));
 
 
             unsafe
@@ -247,8 +241,9 @@ void main() {
             Matrix4x4 changer = Matrix4x4.CreateRotationY(deltaAngle);
 
             float x = 2 * sin60;
+            //float angle = 0;
 
-            while (glfwWindowShouldClose(win) == 0)
+            while (glfwWindowShouldClose(window.Id) == 0)
             {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -262,40 +257,38 @@ void main() {
                     glBufferSubData(GL_UNIFORM_BUFFER, 0 * sizeof(float), 16 * sizeof(float), new IntPtr(&mvp.M11));
                 }
 
+                glColor3b(0x66, 0x00, 0);
+                //glLoadIdentity();
+                //glScalef(0.5f * height / (float)width, 0.5f, 0.5f);
+                //glRotatef(angle, 0, 1, 0);
+                //angle += deltaAngle;
+
                 glDrawElements(GL_TRIANGLES, indices.Length, GL_UNSIGNED_INT, NULL);
+
 
                 //glScalef(sin60, sin60, sin60);
 
-                //glRotatef(angle * 2, 0, 0, 1);
-                //angle += deltaAngle;
-
+                glColor3b(0, 0x66, 0);
                 glBegin(GL_TRIANGLES);
 
-                glVertex3f(0, 2, -1);
-                glVertex3f(x, -1, -1);
-                glVertex3f(-x, -1, -1);
+                glVertex3f(0, 2, -1.125f);
+                glVertex3f(x, -1, -1.125f);
+                glVertex3f(-x, -1, -1.125f);
 
-                glVertex3f(0, 2, 1);
-                glVertex3f(-x, -1, 1);
-                glVertex3f(x, -1, 1);
+                glVertex3f(0, 2, 1.25f);
+                glVertex3f(-x, -1, 1.25f);
+                glVertex3f(x, -1, 1.25f);
 
-                glVertex3f(0, -2, 1);
-                glVertex3f(x, 1, 1);
-                glVertex3f(-x, 1, 1);
+                glVertex3f(0, -2, 1.125f);
+                glVertex3f(x, 1, 1.125f);
+                glVertex3f(-x, 1, 1.125f);
 
                 glEnd();
 
-                glfwSwapBuffers(win);
+                glfwSwapBuffers(window.Id);
                 glfwPollEvents();
             }
 
-            //Terminal terminal = new Terminal();
-            //terminal.Start();
-            //// User user = new User();
-            //if (args != null)
-            //    foreach(string arg in args) {
-            //        Console.WriteLine(arg);
-            //}
             glfwTerminate();
         }
 
