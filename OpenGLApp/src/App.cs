@@ -142,7 +142,7 @@ namespace OpenGLApp
 
             glClearColor(0.125f, 0.125f, 0.125f, 1);
 
-            //glEnable(GL_DEPTH_TEST);
+            glEnable(GL_DEPTH_TEST);
             glEnable(GL_CULL_FACE);
 
             Matrix4x4 model = Matrix4x4.Identity;
@@ -224,6 +224,10 @@ void main() {
             glBufferData(GL_UNIFORM_BUFFER, 48 * sizeof(float), NULL, GL_DYNAMIC_DRAW);
 
             glBindBufferRange(GL_UNIFORM_BUFFER, 0, ubo, 0, 48 * sizeof(float));
+
+            Console.WriteLine($"Vertex size: {Vertex.SIZE_BYTES}");
+            Console.WriteLine($"float size: {sizeof(float)}");
+
 
             glfwSetWindowSizeCallback(window.Id, (IntPtr _, int w, int h) => singleton.ResizeWindow(w, h));
 
