@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using static CSGL.OpenGL; // gl*	
 
 namespace OpenGLApp.src.Graphics.Buffers

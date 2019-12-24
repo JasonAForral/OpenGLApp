@@ -44,7 +44,7 @@ namespace OpenGLApp
             if (this != singleton)
                 return;
 
-            fov = (float)Math.PI / 2;
+            fov = (float)Math.PI / 3;
             string title = "CSGL Window";
 
             width = 1600;
@@ -71,7 +71,7 @@ namespace OpenGLApp
             {
                 Console.WriteLine($"Parsing: {line}");
                 string[] array = line.Split(' ');
-                
+
                 switch (array[0])
                 {
                     case "v":
@@ -140,9 +140,9 @@ layout(location = 0) out vec3 fragNormal;
 layout(location = 1) out vec2 fragTexCoord;
 
 void main() {
-    gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 1.0);
+    gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 1);
     fragTexCoord = inTexCoord;
-	fragNormal = (ubo.view * ubo.model * vec4(inNormal * 0.5, 0.0)).xyz + 0.5;
+    fragNormal = (ubo.view * ubo.model * vec4(inNormal * 0.5, 0)).xyz + 0.5;
 }
 ";
 
@@ -150,15 +150,20 @@ void main() {
 
 layout(location = 0) in vec3 fragNormal;
 layout(location = 1) in vec2 fragTexCoord;
-layout(location = 2) in vec3 fragPosition;
 
 layout(location = 0) out vec4 outColor;
 
 void main() {
-    //float intensity = dot(fragNormal, vec3(0, 0.7071, 0.7071));
-    float intensity = dot(fragNormal, vec3(0, 0, 1));
+    float intensity;
+    intensity = dot(fragNormal, vec3(0, 0.7071, 0.7071));
+    //intensity = dot(fragNormal, vec3(0, 0, 1));
     //outColor = intensity * vec4(fragTexCoord, 0, 1);
-    outColor = intensity * vec4(0.75, 0.7, 0.1, 1);
+    //outColor = intensity * vec4(0.75, 0.75, 0.125, 1);
+    //outColor = vec4(fragNormal, 1);
+    //outColor = vec4(fragTexCoord, 0, 1);
+
+
+    outColor = intensity * vec4(fragTexCoord, 0.5, 1);
 }";
 
             ShaderProgram program = new ShaderProgram(vert, frag);
@@ -278,81 +283,84 @@ void main() {
             };
 
 #else
+            float z = 0.0625f;
             float[] array = {
-                0, 1, 0.1f,				0, 0,  1,
-			-sin60_2, 0.25f, 0.1f,		0, 0,  1,
-			 sin60_2, 0.25f, 0.1f,		0, 0,  1,
-			-sin60, -0.5f, 0.1f,		0, 0,  1,
-			 0, -0.5f, 0.1f,			0, 0,  1,
-			 sin60, -0.5f, 0.1f,		0, 0,  1,
+                 0, 1, z,				0, 0,  1,           0.5f,   1,
+                -sin60_2, 0.25f, z,	    0, 0,  1,           0.25f,  0.625f,
+                 sin60_2, 0.25f, z,     0, 0,  1,           0.75f,  0.625f,
+                -sin60, -0.5f, z,		0, 0,  1,           0,      0.25f,
+                 0, -0.5f, z,			0, 0,  1,           0.5f,   0.25f,
+                 sin60, -0.5f, z,		0, 0,  1,           1,      0.25f,
 
-			 0, 1, -0.1f,				0, 0, -1,
-			 sin60_2, 0.25f, -0.1f,		0, 0, -1,
-			-sin60_2, 0.25f, -0.1f,		0, 0, -1,
-			 sin60, -0.5f, -0.1f,		0, 0, -1,
-			 0, -0.5f, -0.1f,			0, 0, -1,
-			-sin60, -0.5f, -0.1f,		0, 0, -1,
+                 0, 1, -z,			    0, 0, -1,           0.5f,   1,
+                 sin60_2, 0.25f, -z,	0, 0, -1,           0.25f,  0.625f,
+                -sin60_2, 0.25f, -z,	0, 0, -1,           0.75f,  0.625f,
+                 sin60, -0.5f, -z,		0, 0, -1,           0,      0.25f,
+                 0, -0.5f, -z,			0, 0, -1,           0.5f,   0.25f,
+                -sin60, -0.5f, -z,		0, 0, -1,           1,      0.25f,
 
-			 0, 1, 0.1f,				-0.5f, sin60, 0,
-			 0, 1, -0.1f,				-0.5f, sin60, 0,
-			-sin60, -0.5f, -0.1f,		-0.5f, sin60, 0,
-			-sin60, -0.5f, 0.1f,		-0.5f, sin60, 0,
+                -sin60, -0.5f, -z,		-0.5f, sin60, 0,    0, 0,
+                -sin60, -0.5f, z,		-0.5f, sin60, 0,    1, 0,
+                 0, 1, z,				-0.5f, sin60, 0,    1, 1,
+                 0, 1, -z,				-0.5f, sin60, 0,    0, 1,
 
-			0, 1, -0.1f,				0.5f, sin60, 0,
-			0, 1, 0.1f,					0.5f, sin60, 0,
-			sin60, -0.5f, 0.1f,			0.5f, sin60, 0,
-			sin60, -0.5f, -0.1f,		0.5f, sin60, 0,
+                sin60, -0.5f, z,		0.5f, sin60, 0,     0, 0,
+                sin60, -0.5f, -z,		0.5f, sin60, 0,     1, 0,
+                0, 1, -z,				0.5f, sin60, 0,     1, 1,
+                0, 1, z,				0.5f, sin60, 0,     0, 1,
 
-			-sin60_2, 0.25f, 0.1f,		0, -1,  0,
-			-sin60_2, 0.25f, -0.1f,		0, -1,  0,
-			 sin60_2, 0.25f, -0.1f,		0, -1,  0,
-			 sin60_2, 0.25f, 0.1f,		0, -1,  0,
-
-
-			-sin60_2, 0.25f, -0.1f,		0.5f, sin60, 0,
-			-sin60_2, 0.25f, 0.1f,		0.5f, sin60, 0,
-			0, -0.5f, 0.1f,				0.5f, sin60, 0,
-			0, -0.5f, -0.1f,			0.5f, sin60, 0,
+                -sin60_2, 0.25f, z,		0, -1,  0,          0, 0,
+                -sin60_2, 0.25f, -z,	0, -1,  0,          1, 0,
+                 sin60_2, 0.25f, -z,	0, -1,  0,          1, 1,
+                 sin60_2, 0.25f, z,		0, -1,  0,          0, 1,
 
 
-			sin60_2, 0.25f, 0.1f,		-0.5f, sin60, 0,
-			sin60_2, 0.25f, -0.1f,		-0.5f, sin60, 0,
-			0, -0.5f, -0.1f,			-0.5f, sin60, 0,
-			0, -0.5f, 0.1f,				-0.5f, sin60, 0,
+                 0, -0.5f, z,			0.5f, sin60, 0,     0, 0,
+                 0, -0.5f, -z,			0.5f, sin60, 0,     1, 0,
+                -sin60_2, 0.25f, -z,	0.5f, sin60, 0,     1, 1,
+                -sin60_2, 0.25f, z,		0.5f, sin60, 0,     0, 1,
 
 
-			-sin60, -0.5f, 0.1f,		0, -1,  0,
-			-sin60, -0.5f, -0.1f,		0, -1,  0,
-			 sin60, -0.5f, -0.1f,		0, -1,  0,
-			 sin60, -0.5f, 0.1f,		0, -1,  0,
-		};
+                0, -0.5f, -z,			-0.5f, sin60, 0,    0, 0,
+                0, -0.5f, z,			-0.5f, sin60, 0,    1, 0,
+                sin60_2, 0.25f, z,		-0.5f, sin60, 0,    1, 1,
+                sin60_2, 0.25f, -z,		-0.5f, sin60, 0,    0, 1,
+
+
+                -sin60, -0.5f, z,		0, -1,  0,          0, 0,
+                -sin60, -0.5f, -z,		0, -1,  0,          1, 0,
+                 sin60, -0.5f, -z,		0, -1,  0,          1, 1,
+                 sin60, -0.5f, z,		0, -1,  0,          0, 1,
+            };
 
             int[] indices = {
                 0, 1, 2,
-			1, 3, 4,
-			2, 4, 5,
-			6, 7, 8,
-			7, 9, 10,
-			8, 10, 11,
+                1, 3, 4,
+                2, 4, 5,
+                6, 7, 8,
+                7, 9, 10,
+                8, 10, 11,
 
-			12, 13, 14, 14, 15, 12,
-			16, 17, 18, 18, 19, 16,
-			20, 21, 22, 22, 23, 20,
-			24, 25, 26, 26, 27, 24,
-			28, 29, 30, 30, 31, 28,
-			32, 33, 34, 34, 35, 32,
-		};
+                12, 13, 14, 14, 15, 12,
+                16, 17, 18, 18, 19, 16,
+                20, 21, 22, 22, 23, 20,
+                24, 25, 26, 26, 27, 24,
+                28, 29, 30, 30, 31, 28,
+                32, 33, 34, 34, 35, 32,
+            };
 
             var interleaved = new StaticArrayBuffer(array);
 
             glEnableVertexAttribArray(positionLocation);
-            glVertexAttribPointer(positionLocation, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, NULL);
+            glVertexAttribPointer(positionLocation, 3, GL_FLOAT, GL_FALSE, Vertex.SIZE_BYTES, NULL);
 
             glEnableVertexAttribArray(normalLocation);
-            glVertexAttribPointer(normalLocation, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, new IntPtr(3 * sizeof(float)));
+            glVertexAttribPointer(normalLocation, 3, GL_FLOAT, GL_FALSE, Vertex.SIZE_BYTES, new IntPtr(3 * sizeof(float)));
+
+            glEnableVertexAttribArray(texLocation);
+            glVertexAttribPointer(texLocation, 2, GL_FLOAT, GL_FALSE, Vertex.SIZE_BYTES, new IntPtr(6 * sizeof(float)));
 
 #endif
-
 
             StaticElementArrayBuffer indexBuffer = new StaticElementArrayBuffer(indices);
 
@@ -398,11 +406,11 @@ void main() {
                 //model *= Matrix4x4.CreateRotationX(deltaAngle);
                 //model *= Matrix4x4.CreateRotationZ(deltaAngle);
                 model *= Matrix4x4.CreateRotationY(deltaAngle);
-                Matrix4x4 matrixTop = model * matrixStack.Peek();
+                //matrix4x4 matrixtop = model * matrixstack.peek();
 
                 unsafe
                 {
-                    glBufferSubData(GL_UNIFORM_BUFFER, 0 * sizeof(float), 16 * sizeof(float), new IntPtr(&matrixTop.M11));
+                    glBufferSubData(GL_UNIFORM_BUFFER, 0 * sizeof(float), 16 * sizeof(float), new IntPtr(&model.M11));
                 }
                 //glLoadIdentity();
                 glColor3b(0x66, 0x00, 0);
