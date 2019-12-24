@@ -16,6 +16,7 @@ namespace OpenGLApp
     public class App
     {
         private const float sin60 = 0.866025388240814208984375f;
+        private const float sin60_2 = sin60 / 2f;
         static App singleton = null;
 
         int width, height;
@@ -48,13 +49,8 @@ namespace OpenGLApp
 
             width = 1600;
             height = 900;
-            List<Vertex> vertexList = new List<Vertex>
-            {
-                new Vertex(1, 0, 0, 0, 0, 1, 0, 0),
-                new Vertex(0, 1, 0, 0, 0, 1, 0, 0),
-                new Vertex(0, 0, 1, 0, 0, 1, 0, 0),
 
-            };
+
 #if false
             string path = @"resources/models/triforce1.obj";
             if (!File.Exists(path))
@@ -108,30 +104,6 @@ namespace OpenGLApp
             float[] vertices = verts.ToArray();
 
             int[] indices = vertexIndices.ToArray();
-#else
-            float[] vertices =
-            {
-                -1, -1,  1,
-                 1, -1,  1,
-                 1,  1,  1,
-                -1,  1,  1,
-
-                -1, -1, -1,
-                 1, -1, -1,
-                 1,  1, -1,
-                -1,  1, -1,
-            };
-
-
-            int[] indices =
-            {
-                0, 1, 2, 2, 3, 0,
-                4, 7, 6, 6, 5, 4,
-                4, 0, 3, 3, 7, 4,
-                1, 5, 6, 6, 2, 1,
-                3, 2, 6, 6, 7, 3,
-                0, 4, 5, 5, 1, 0,
-            };
 #endif
             //glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); // Change this to your targeted major version
             //glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5); // Change this to your targeted minor version
@@ -146,15 +118,12 @@ namespace OpenGLApp
             glEnable(GL_CULL_FACE);
 
             Matrix4x4 model = Matrix4x4.Identity;
-            view = Matrix4x4.CreateTranslation(0, 0, -3);
+            view = Matrix4x4.CreateTranslation(0, 0, -2);
             world = Matrix4x4.CreatePerspectiveFieldOfView(fov, width / (float)height, 0.125f, 1024f);
             matrixStack = new Stack<Matrix4x4>();
+            matrixStack.Push(Matrix4x4.Identity);
 
             ChangeFov(fov);
-
-            uint positionLocation = 0;
-            //uint normalLocation = 0;
-
             string vert = @"#version 450
 
 layout(binding = 1) uniform UniformBufferObject {
@@ -163,23 +132,17 @@ layout(binding = 1) uniform UniformBufferObject {
     mat4 proj;
 } ubo;
 
-layout(location = 0) in vec4 inPosition;
+layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inNormal;
 layout(location = 2) in vec2 inTexCoord;
 
 layout(location = 0) out vec3 fragNormal;
 layout(location = 1) out vec2 fragTexCoord;
-layout(location = 2) out vec3 fragPosition;
 
 void main() {
-    //mat4 ident = mat4(1.0);
-    //gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 1.0);
-    fragTexCoord = inPosition.xy * 0.5 + 0.5;
-	//fragNormal = (ubo.view * ubo.model * vec4(inNormal * 0.5, 0.0)).xyz + 0.5;
-	//fragNormal = inNormal * 0.5 + 0.5; 
-    fragPosition = inPosition.xyz * 0.5 + 0.5;
-    gl_Position = ubo.model * inPosition;
-
+    gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 1.0);
+    fragTexCoord = inTexCoord;
+	fragNormal = (ubo.view * ubo.model * vec4(inNormal * 0.5, 0.0)).xyz + 0.5;
 }
 ";
 
@@ -193,10 +156,9 @@ layout(location = 0) out vec4 outColor;
 
 void main() {
     //float intensity = dot(fragNormal, vec3(0, 0.7071, 0.7071));
-    //outColor = intensity * vec4(0.75, 0.7, 0.1, 1);
-	//outColor = vec4(fragNormal, 1.0);
-    //outColor = vec4(1.0);
-    outColor = vec4(fragPosition, 1.0);
+    float intensity = dot(fragNormal, vec3(0, 0, 1));
+    //outColor = intensity * vec4(fragTexCoord, 0, 1);
+    outColor = intensity * vec4(0.75, 0.7, 0.1, 1);
 }";
 
             ShaderProgram program = new ShaderProgram(vert, frag);
@@ -206,12 +168,193 @@ void main() {
             VertexArray vao = new VertexArray();
             vao.Bind();
 
-            StaticArrayBuffer vertexBuffer = new StaticArrayBuffer(vertices);
-            StaticElementArrayBuffer indexBuffer = new StaticElementArrayBuffer(indices);
 
-            positionLocation = (uint) glGetAttribLocation(program.Id, "inPosition");
+            uint positionLocation = (uint)glGetAttribLocation(program.Id, "inPosition");
+            uint normalLocation = (uint)glGetAttribLocation(program.Id, "inNormal");
+            uint texLocation = (uint)glGetAttribLocation(program.Id, "inTexCoord");
+
+            Console.WriteLine($"{(int)positionLocation}\n{(int)normalLocation}\n{(int)texLocation}");
+
+#if false
+            float[] vertices =
+            {
+                -1, -1,  1,
+                 1, -1,  1,
+                 1,  1,  1,
+                -1,  1,  1,
+
+                -1, -1, -1,
+                 1, -1, -1,
+                 1,  1, -1,
+                -1,  1, -1,
+            };
+
+            float[] normals =
+            {
+                0, 0, 1,
+                0, 0, 1,
+                0, 0, 1,
+                0, 0, 1,
+
+                0, 0, -1,
+                0, 0, -1,
+                0, 0, -1,
+                0, 0, -1,
+            };
+
+
+            float[] tex =
+            {
+                0, 0,
+                1, 0,
+                1, 1,
+                0, 1,
+
+                1, 0,
+                0, 0,
+                0, 1,
+                1, 1,
+
+            };
+
+            int[] indices =
+            {
+                0, 1, 2, 2, 3, 0,
+                4, 7, 6, 6, 5, 4,
+                //4, 0, 3, 3, 7, 4,
+                //1, 5, 6, 6, 2, 1,
+                //3, 2, 6, 6, 7, 3,
+                //0, 4, 5, 5, 1, 0,
+            };
+
+
+            StaticArrayBuffer vertexBuffer = new StaticArrayBuffer(vertices);
+
             glEnableVertexAttribArray(positionLocation);
             glVertexAttribPointer(positionLocation, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, NULL);
+
+            StaticArrayBuffer normalBuffer = new StaticArrayBuffer(normals);
+
+            glEnableVertexAttribArray(normalLocation);
+            glVertexAttribPointer(normalLocation, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, NULL);
+
+            StaticArrayBuffer texBuffer = new StaticArrayBuffer(tex);
+
+            glEnableVertexAttribArray(texLocation);
+            glVertexAttribPointer(texLocation, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, NULL);
+#elif false
+            List<Vertex> vertexList = new List<Vertex>
+            {
+                new Vertex(-1, -1,  1, 0, 0, 1, 0, 0),
+                new Vertex(1, -1,  1, 0, 0, 1, 1, 0),
+                new Vertex(1, 1, 1, 0, 0, 1, 1, 1),
+                new Vertex(-1, 1, 1, 0, 0, 1, 0, 1),
+
+                new Vertex(-1, -1,  -1, 0, 0, -1, 1, 0),
+                new Vertex(1, -1,  -1, 0, 0, -1, 0, 0),
+                new Vertex(1, 1, -1, 0, 0, -1, 0, 1),
+                new Vertex(-1, 1, -1, 0, 0, -1, 1, 1),
+            };
+
+            var interleaved = new StaticInterleavedVertexBuffer(vertexList);
+
+            glEnableVertexAttribArray(positionLocation);
+            glVertexAttribPointer(positionLocation, 3, GL_FLOAT, GL_FALSE, Vertex.SIZE_BYTES, NULL);
+
+            glEnableVertexAttribArray(normalLocation);
+            glVertexAttribPointer(normalLocation, 3, GL_FLOAT, GL_FALSE, Vertex.SIZE_BYTES, new IntPtr(3 * sizeof(float)));
+
+            glEnableVertexAttribArray(texLocation);
+            glVertexAttribPointer(texLocation, 2, GL_FLOAT, GL_FALSE, Vertex.SIZE_BYTES, new IntPtr(6 * sizeof(float)));
+
+            int[] indices =
+            {
+                0, 1, 2, 2, 3, 0,
+                4, 7, 6, 6, 5, 4,
+                4, 0, 3, 3, 7, 4,
+                1, 5, 6, 6, 2, 1,
+                3, 2, 6, 6, 7, 3,
+                0, 4, 5, 5, 1, 0,
+            };
+
+#else
+            float[] array = {
+                0, 1, 0.1f,				0, 0,  1,
+			-sin60_2, 0.25f, 0.1f,		0, 0,  1,
+			 sin60_2, 0.25f, 0.1f,		0, 0,  1,
+			-sin60, -0.5f, 0.1f,		0, 0,  1,
+			 0, -0.5f, 0.1f,			0, 0,  1,
+			 sin60, -0.5f, 0.1f,		0, 0,  1,
+
+			 0, 1, -0.1f,				0, 0, -1,
+			 sin60_2, 0.25f, -0.1f,		0, 0, -1,
+			-sin60_2, 0.25f, -0.1f,		0, 0, -1,
+			 sin60, -0.5f, -0.1f,		0, 0, -1,
+			 0, -0.5f, -0.1f,			0, 0, -1,
+			-sin60, -0.5f, -0.1f,		0, 0, -1,
+
+			 0, 1, 0.1f,				-0.5f, sin60, 0,
+			 0, 1, -0.1f,				-0.5f, sin60, 0,
+			-sin60, -0.5f, -0.1f,		-0.5f, sin60, 0,
+			-sin60, -0.5f, 0.1f,		-0.5f, sin60, 0,
+
+			0, 1, -0.1f,				0.5f, sin60, 0,
+			0, 1, 0.1f,					0.5f, sin60, 0,
+			sin60, -0.5f, 0.1f,			0.5f, sin60, 0,
+			sin60, -0.5f, -0.1f,		0.5f, sin60, 0,
+
+			-sin60_2, 0.25f, 0.1f,		0, -1,  0,
+			-sin60_2, 0.25f, -0.1f,		0, -1,  0,
+			 sin60_2, 0.25f, -0.1f,		0, -1,  0,
+			 sin60_2, 0.25f, 0.1f,		0, -1,  0,
+
+
+			-sin60_2, 0.25f, -0.1f,		0.5f, sin60, 0,
+			-sin60_2, 0.25f, 0.1f,		0.5f, sin60, 0,
+			0, -0.5f, 0.1f,				0.5f, sin60, 0,
+			0, -0.5f, -0.1f,			0.5f, sin60, 0,
+
+
+			sin60_2, 0.25f, 0.1f,		-0.5f, sin60, 0,
+			sin60_2, 0.25f, -0.1f,		-0.5f, sin60, 0,
+			0, -0.5f, -0.1f,			-0.5f, sin60, 0,
+			0, -0.5f, 0.1f,				-0.5f, sin60, 0,
+
+
+			-sin60, -0.5f, 0.1f,		0, -1,  0,
+			-sin60, -0.5f, -0.1f,		0, -1,  0,
+			 sin60, -0.5f, -0.1f,		0, -1,  0,
+			 sin60, -0.5f, 0.1f,		0, -1,  0,
+		};
+
+            int[] indices = {
+                0, 1, 2,
+			1, 3, 4,
+			2, 4, 5,
+			6, 7, 8,
+			7, 9, 10,
+			8, 10, 11,
+
+			12, 13, 14, 14, 15, 12,
+			16, 17, 18, 18, 19, 16,
+			20, 21, 22, 22, 23, 20,
+			24, 25, 26, 26, 27, 24,
+			28, 29, 30, 30, 31, 28,
+			32, 33, 34, 34, 35, 32,
+		};
+
+            var interleaved = new StaticArrayBuffer(array);
+
+            glEnableVertexAttribArray(positionLocation);
+            glVertexAttribPointer(positionLocation, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, NULL);
+
+            glEnableVertexAttribArray(normalLocation);
+            glVertexAttribPointer(normalLocation, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, new IntPtr(3 * sizeof(float)));
+
+#endif
+
+
+            StaticElementArrayBuffer indexBuffer = new StaticElementArrayBuffer(indices);
 
             uint ubo_location = glGetUniformBlockIndex(program.Id, "UniformBufferObject");
 
@@ -236,7 +379,8 @@ void main() {
             {
                 Matrix4x4 world = this.world;
                 Matrix4x4 view = this.view;
-                glBufferSubData(GL_UNIFORM_BUFFER, 0 * sizeof(float), 16 * sizeof(float), new IntPtr(&model.M11));
+                Matrix4x4 matrixTop = model * matrixStack.Peek();
+                glBufferSubData(GL_UNIFORM_BUFFER, 0 * sizeof(float), 16 * sizeof(float), new IntPtr(&matrixTop.M11));
                 glBufferSubData(GL_UNIFORM_BUFFER, 16 * sizeof(float), 16 * sizeof(float), new IntPtr(&view.M11));
                 glBufferSubData(GL_UNIFORM_BUFFER, 32 * sizeof(float), 16 * sizeof(float), new IntPtr(&world.M11));
             }
@@ -244,7 +388,7 @@ void main() {
             float deltaAngle = 1 / 1024f;
             Matrix4x4 changer = Matrix4x4.CreateRotationY(deltaAngle);
 
-            float x = 2 * sin60;
+            //float x = 2 * sin60;
             //float angle = 0;
 
             while (glfwWindowShouldClose(window.Id) == 0)
@@ -254,13 +398,13 @@ void main() {
                 //model *= Matrix4x4.CreateRotationX(deltaAngle);
                 //model *= Matrix4x4.CreateRotationZ(deltaAngle);
                 model *= Matrix4x4.CreateRotationY(deltaAngle);
-                Matrix4x4 mvp = model * matrixStack.Peek();
+                Matrix4x4 matrixTop = model * matrixStack.Peek();
 
                 unsafe
                 {
-                    glBufferSubData(GL_UNIFORM_BUFFER, 0 * sizeof(float), 16 * sizeof(float), new IntPtr(&mvp.M11));
+                    glBufferSubData(GL_UNIFORM_BUFFER, 0 * sizeof(float), 16 * sizeof(float), new IntPtr(&matrixTop.M11));
                 }
-
+                //glLoadIdentity();
                 glColor3b(0x66, 0x00, 0);
                 //glLoadIdentity();
                 //glScalef(0.5f * height / (float)width, 0.5f, 0.5f);
@@ -270,24 +414,20 @@ void main() {
                 glDrawElements(GL_TRIANGLES, indices.Length, GL_UNSIGNED_INT, NULL);
 
 
-                //glScalef(sin60, sin60, sin60);
+                //glScalef(2, 2, 2);
 
-                glColor3b(0, 0x66, 0);
-                glBegin(GL_TRIANGLES);
+                //glColor3b(0, 0x66, 0);
+                //glBegin(GL_TRIANGLES);
 
-                glVertex3f(0, 2, -1.125f);
-                glVertex3f(x, -1, -1.125f);
-                glVertex3f(-x, -1, -1.125f);
+                //glVertex3f(0, 2, -.125f);
+                //glVertex3f(x, -1, -.125f);
+                //glVertex3f(-x, -1, -.125f);
 
-                glVertex3f(0, 2, 1.25f);
-                glVertex3f(-x, -1, 1.25f);
-                glVertex3f(x, -1, 1.25f);
+                //glVertex3f(0, 2, .125f);
+                //glVertex3f(-x, -1, .125f);
+                //glVertex3f(x, -1, .125f);
 
-                glVertex3f(0, -2, 1.125f);
-                glVertex3f(x, 1, 1.125f);
-                glVertex3f(-x, 1, 1.125f);
-
-                glEnd();
+                //glEnd();
 
                 glfwSwapBuffers(window.Id);
                 glfwPollEvents();
@@ -301,23 +441,25 @@ void main() {
         {
             width = w;
             height = h;
-            ResetMatrixStack();
+            RefreshWorldMatrix();
         }
 
-        private void ResetMatrixStack()
+        private void RefreshWorldMatrix()
         {
             world = Matrix4x4.CreatePerspectiveFieldOfView(fov, width / (float)height, 0.125f, 1024f);
-            matrixStack.Clear();
-            matrixStack.Push(Matrix4x4.Identity);
-            matrixStack.Push(world * matrixStack.Peek());
-            matrixStack.Push(view * matrixStack.Peek());
             glViewport(0, 0, width, height);
+
+            unsafe
+            {
+                fixed (float* worldPtr = &world.M11)
+                    glBufferSubData(GL_UNIFORM_BUFFER, 32 * sizeof(float), 16 * sizeof(float), new IntPtr(worldPtr));
+            }
         }
 
         private void ChangeFov(float fov)
         {
             this.fov = fov;
-            ResetMatrixStack();
+            RefreshWorldMatrix();
         }
     }
 }

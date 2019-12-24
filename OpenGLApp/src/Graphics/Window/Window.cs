@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using static CSGL.CSGL;   // csgl*
 using static CSGL.Glfw3;  // glfw*
-using static CSGL.OpenGL; // gl*
 
 namespace OpenGLApp.src.Graphics.Window
 {
@@ -32,7 +29,7 @@ namespace OpenGLApp.src.Graphics.Window
                 return;
             glfwMakeContextCurrent(Id);
             csglLoadGL();
-#if DEBUG
+#if false
             int[] extensionCount = { 0 };
             glGetIntegerv(GL_NUM_EXTENSIONS, extensionCount);
             Console.WriteLine($"Extensions: {extensionCount[0]}");

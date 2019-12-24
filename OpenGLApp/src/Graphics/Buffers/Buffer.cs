@@ -51,9 +51,9 @@ namespace OpenGLApp.src.Graphics.Buffers
         {
             unsafe
             {
-                fixed (void* vertexPtr = array)
+                fixed (void* arrayPtr = array)
                 {
-                    glBufferData(target, array.Length * sizeof(float), new IntPtr(vertexPtr), usage);
+                    glBufferData(target, array.Length * sizeof(float), new IntPtr(arrayPtr), usage);
                 }
             }
         }

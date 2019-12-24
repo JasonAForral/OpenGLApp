@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Numerics;
-using System.Text;
 
 
 namespace OpenGLApp.src.Graphics
@@ -15,11 +13,23 @@ namespace OpenGLApp.src.Graphics
         public const int SIZE = 8;
         public const int SIZE_BYTES = SIZE * sizeof(float);
 
-        public Vertex(float x, float y, float z, float u, float v, float nx, float ny, float nz)
+        public Vertex(float x, float y, float z, float nx, float ny, float nz, float u, float v)
         {
             position = new Vector3(x, y, z);
-            texCoord = new Vector2(u, v);
             normal = new Vector3(nx, ny, nz);
+            texCoord = new Vector2(u, v);
+#if DEBUG
+            Console.WriteLine($"{position.ToString()}\t{normal.ToString()}\t{texCoord.ToString()}");
+#endif
+
+        }
+
+        internal float[] CopyTo(float[] array, int index)
+        {
+            position.CopyTo(array, index + 0);
+            normal.CopyTo(array, index + 3);
+            texCoord.CopyTo(array, index + 6);
+            return array;
         }
 
         public float[] ToArray()

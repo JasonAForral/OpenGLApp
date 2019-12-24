@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
+using System.Runtime.InteropServices;
 using static CSGL.OpenGL; // gl*
 
 namespace OpenGLApp.src.Graphics.Buffers
@@ -15,23 +17,23 @@ namespace OpenGLApp.src.Graphics.Buffers
             for (int i = 0; i < vertices.Count; i++)
             {
                 Vertex vertex = vertices[i];
-                vertex.ToArray().CopyTo(array, i * Vertex.SIZE);
+                _ = vertex.CopyTo(array, i * Vertex.SIZE);
             }
+#if DEBUG
+            foreach(var item in array)
+            {
+                Console.Write($"{item}, ");
+            }
+            Console.WriteLine();
+#endif
             glGenBuffers(1, ref id);
             glBindBuffer(GL_ARRAY_BUFFER, id);
             unsafe
             {
                 fixed (void* vertexPtr = array)
-                    glBufferData(GL_ARRAY_BUFFER, Vertex.SIZE, new IntPtr(vertexPtr), GL_STATIC_DRAW);
-
-                uint vpos_location = 0;
-                glEnableVertexAttribArray(vpos_location);
-                glVertexAttribPointer(vpos_location, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, IntPtr.Zero);
-
-                uint vnor_location = 0;
-                glEnableVertexAttribArray(vnor_location);
-                glVertexAttribPointer(vnor_location, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, IntPtr.Add(IntPtr.Zero, 3));
+                    glBufferData(GL_ARRAY_BUFFER, array.Length * sizeof(float), new IntPtr(vertexPtr), GL_STATIC_DRAW);
             }
+
 
             //uint index_buffer = 0;
             //glGenBuffers(1, ref index_buffer);
