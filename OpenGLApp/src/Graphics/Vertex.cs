@@ -18,10 +18,6 @@ namespace OpenGLApp.src.Graphics
             position = new Vector3(x, y, z);
             normal = new Vector3(nx, ny, nz);
             texCoord = new Vector2(u, v);
-#if DEBUG
-            Console.WriteLine($"{position.ToString()}\t{normal.ToString()}\t{texCoord.ToString()}");
-#endif
-
         }
 
         internal float[] CopyTo(float[] array, int index)

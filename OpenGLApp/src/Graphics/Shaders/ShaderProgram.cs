@@ -52,5 +52,15 @@ namespace OpenGLApp.src.Graphics.Shaders
                 return;
             }
         }
+
+        public void Bind()
+        {
+            glUseProgram(Id);
+        }
+
+        public void Unbind()
+        {
+            glUseProgram(0);
+        }
     }
 }

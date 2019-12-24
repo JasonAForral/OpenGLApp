@@ -163,174 +163,65 @@ void main() {
     //outColor = vec4(fragTexCoord, 0, 1);
 
 
-    outColor = intensity * vec4(fragTexCoord, 0.5, 1);
+    outColor = intensity * vec4(fragTexCoord, 0, 1);
 }";
 
             ShaderProgram program = new ShaderProgram(vert, frag);
 
-            glUseProgram(program.Id);
+            program.Bind();
 
             VertexArray vao = new VertexArray();
             vao.Bind();
-
 
             uint positionLocation = (uint)glGetAttribLocation(program.Id, "inPosition");
             uint normalLocation = (uint)glGetAttribLocation(program.Id, "inNormal");
             uint texLocation = (uint)glGetAttribLocation(program.Id, "inTexCoord");
 
-            Console.WriteLine($"{(int)positionLocation}\n{(int)normalLocation}\n{(int)texLocation}");
-
-#if false
-            float[] vertices =
-            {
-                -1, -1,  1,
-                 1, -1,  1,
-                 1,  1,  1,
-                -1,  1,  1,
-
-                -1, -1, -1,
-                 1, -1, -1,
-                 1,  1, -1,
-                -1,  1, -1,
-            };
-
-            float[] normals =
-            {
-                0, 0, 1,
-                0, 0, 1,
-                0, 0, 1,
-                0, 0, 1,
-
-                0, 0, -1,
-                0, 0, -1,
-                0, 0, -1,
-                0, 0, -1,
-            };
-
-
-            float[] tex =
-            {
-                0, 0,
-                1, 0,
-                1, 1,
-                0, 1,
-
-                1, 0,
-                0, 0,
-                0, 1,
-                1, 1,
-
-            };
-
-            int[] indices =
-            {
-                0, 1, 2, 2, 3, 0,
-                4, 7, 6, 6, 5, 4,
-                //4, 0, 3, 3, 7, 4,
-                //1, 5, 6, 6, 2, 1,
-                //3, 2, 6, 6, 7, 3,
-                //0, 4, 5, 5, 1, 0,
-            };
-
-
-            StaticArrayBuffer vertexBuffer = new StaticArrayBuffer(vertices);
-
-            glEnableVertexAttribArray(positionLocation);
-            glVertexAttribPointer(positionLocation, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, NULL);
-
-            StaticArrayBuffer normalBuffer = new StaticArrayBuffer(normals);
-
-            glEnableVertexAttribArray(normalLocation);
-            glVertexAttribPointer(normalLocation, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, NULL);
-
-            StaticArrayBuffer texBuffer = new StaticArrayBuffer(tex);
-
-            glEnableVertexAttribArray(texLocation);
-            glVertexAttribPointer(texLocation, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, NULL);
-#elif false
-            List<Vertex> vertexList = new List<Vertex>
-            {
-                new Vertex(-1, -1,  1, 0, 0, 1, 0, 0),
-                new Vertex(1, -1,  1, 0, 0, 1, 1, 0),
-                new Vertex(1, 1, 1, 0, 0, 1, 1, 1),
-                new Vertex(-1, 1, 1, 0, 0, 1, 0, 1),
-
-                new Vertex(-1, -1,  -1, 0, 0, -1, 1, 0),
-                new Vertex(1, -1,  -1, 0, 0, -1, 0, 0),
-                new Vertex(1, 1, -1, 0, 0, -1, 0, 1),
-                new Vertex(-1, 1, -1, 0, 0, -1, 1, 1),
-            };
-
-            var interleaved = new StaticInterleavedVertexBuffer(vertexList);
-
-            glEnableVertexAttribArray(positionLocation);
-            glVertexAttribPointer(positionLocation, 3, GL_FLOAT, GL_FALSE, Vertex.SIZE_BYTES, NULL);
-
-            glEnableVertexAttribArray(normalLocation);
-            glVertexAttribPointer(normalLocation, 3, GL_FLOAT, GL_FALSE, Vertex.SIZE_BYTES, new IntPtr(3 * sizeof(float)));
-
-            glEnableVertexAttribArray(texLocation);
-            glVertexAttribPointer(texLocation, 2, GL_FLOAT, GL_FALSE, Vertex.SIZE_BYTES, new IntPtr(6 * sizeof(float)));
-
-            int[] indices =
-            {
-                0, 1, 2, 2, 3, 0,
-                4, 7, 6, 6, 5, 4,
-                4, 0, 3, 3, 7, 4,
-                1, 5, 6, 6, 2, 1,
-                3, 2, 6, 6, 7, 3,
-                0, 4, 5, 5, 1, 0,
-            };
-
-#else
             float z = 0.0625f;
-            float[] array = {
-                 0, 1, z,				0, 0,  1,           0.5f,   1,
-                -sin60_2, 0.25f, z,	    0, 0,  1,           0.25f,  0.625f,
-                 sin60_2, 0.25f, z,     0, 0,  1,           0.75f,  0.625f,
-                -sin60, -0.5f, z,		0, 0,  1,           0,      0.25f,
-                 0, -0.5f, z,			0, 0,  1,           0.5f,   0.25f,
-                 sin60, -0.5f, z,		0, 0,  1,           1,      0.25f,
+            List<Vertex> vertexList = new List<Vertex>() {
+                new Vertex( 0, 1, z,                0, 0,  1,           0.5f,   1),
+                new Vertex(-sin60_2, 0.25f, z,      0, 0,  1,           0.25f,  0.625f),
+                new Vertex( sin60_2, 0.25f, z,      0, 0,  1,           0.75f,  0.625f),
+                new Vertex(-sin60, -0.5f, z,        0, 0,  1,           0,      0.25f),
+                new Vertex( 0, -0.5f, z,            0, 0,  1,           0.5f,   0.25f),
+                new Vertex(sin60, -0.5f, z,         0, 0,  1,           1,      0.25f),
 
-                 0, 1, -z,			    0, 0, -1,           0.5f,   1,
-                 sin60_2, 0.25f, -z,	0, 0, -1,           0.25f,  0.625f,
-                -sin60_2, 0.25f, -z,	0, 0, -1,           0.75f,  0.625f,
-                 sin60, -0.5f, -z,		0, 0, -1,           0,      0.25f,
-                 0, -0.5f, -z,			0, 0, -1,           0.5f,   0.25f,
-                -sin60, -0.5f, -z,		0, 0, -1,           1,      0.25f,
+                new Vertex( 0, 1, -z,               0, 0, -1,           0.5f,   1),
+                new Vertex( sin60_2, 0.25f, -z,     0,  0, -1,          0.25f,  0.625f),
+                new Vertex(-sin60_2, 0.25f, -z,     0,  0, -1,          0.75f,  0.625f),
+                new Vertex( sin60, -0.5f, -z,       0, 0, -1,           0,      0.25f),
+                new Vertex( 0, -0.5f, -z,           0, 0, -1,           0.5f,   0.25f),
+                new Vertex(-sin60, -0.5f, -z,       0, 0, -1,           1,      0.25f),
 
-                -sin60, -0.5f, -z,		-0.5f, sin60, 0,    0, 0,
-                -sin60, -0.5f, z,		-0.5f, sin60, 0,    1, 0,
-                 0, 1, z,				-0.5f, sin60, 0,    1, 1,
-                 0, 1, -z,				-0.5f, sin60, 0,    0, 1,
+                new Vertex(-sin60, -0.5f, -z,       -0.5f, sin60, 0,    0, 0),
+                new Vertex(-sin60, -0.5f, z,        -0.5f, sin60, 0,    1, 0),
+                new Vertex( 0, 1, z,                -0.5f, sin60, 0,    1, 1),
+                new Vertex( 0, 1, -z,               -0.5f, sin60, 0,    0, 1),
 
-                sin60, -0.5f, z,		0.5f, sin60, 0,     0, 0,
-                sin60, -0.5f, -z,		0.5f, sin60, 0,     1, 0,
-                0, 1, -z,				0.5f, sin60, 0,     1, 1,
-                0, 1, z,				0.5f, sin60, 0,     0, 1,
-
-                -sin60_2, 0.25f, z,		0, -1,  0,          0, 0,
-                -sin60_2, 0.25f, -z,	0, -1,  0,          1, 0,
-                 sin60_2, 0.25f, -z,	0, -1,  0,          1, 1,
-                 sin60_2, 0.25f, z,		0, -1,  0,          0, 1,
-
-
-                 0, -0.5f, z,			0.5f, sin60, 0,     0, 0,
-                 0, -0.5f, -z,			0.5f, sin60, 0,     1, 0,
-                -sin60_2, 0.25f, -z,	0.5f, sin60, 0,     1, 1,
-                -sin60_2, 0.25f, z,		0.5f, sin60, 0,     0, 1,
-
-
-                0, -0.5f, -z,			-0.5f, sin60, 0,    0, 0,
-                0, -0.5f, z,			-0.5f, sin60, 0,    1, 0,
-                sin60_2, 0.25f, z,		-0.5f, sin60, 0,    1, 1,
-                sin60_2, 0.25f, -z,		-0.5f, sin60, 0,    0, 1,
-
-
-                -sin60, -0.5f, z,		0, -1,  0,          0, 0,
-                -sin60, -0.5f, -z,		0, -1,  0,          1, 0,
-                 sin60, -0.5f, -z,		0, -1,  0,          1, 1,
-                 sin60, -0.5f, z,		0, -1,  0,          0, 1,
+                new Vertex(sin60, -0.5f, z,         0.5f, sin60, 0,     0, 0),
+                new Vertex(sin60, -0.5f, -z,        0.5f, sin60, 0,     1, 0),
+                new Vertex(0, 1, -z,                0.5f, sin60, 0,     1, 1),
+                new Vertex(0, 1, z,                 0.5f, sin60, 0,     0, 1),
+                                                                            
+                new Vertex(-sin60_2, 0.25f, z,      0, -1,  0,          0, 0),
+                new Vertex(-sin60_2, 0.25f, -z,     0, -1,  0,          1, 0),
+                new Vertex( sin60_2, 0.25f, -z,     0, -1,  0,          1, 1),
+                new Vertex( sin60_2, 0.25f, z,      0, -1,  0,          0, 1),
+                                                                            
+                new Vertex( 0, -0.5f, z,            0.5f, sin60, 0,     0, 0),
+                new Vertex( 0, -0.5f, -z,           0.5f, sin60, 0,     1, 0),
+                new Vertex(-sin60_2, 0.25f, -z,     0.5f, sin60, 0,     1, 1),
+                new Vertex(-sin60_2, 0.25f, z,      0.5f, sin60, 0,     0, 1),
+                                                                            
+                new Vertex(0, -0.5f, -z,            -0.5f, sin60, 0,    0, 0),
+                new Vertex(0, -0.5f, z,             -0.5f, sin60, 0,    1, 0),
+                new Vertex(sin60_2, 0.25f, z,       -0.5f, sin60, 0,    1, 1),
+                new Vertex(sin60_2, 0.25f, -z,      -0.5f, sin60, 0,    0, 1),
+                                                                            
+                new Vertex(-sin60, -0.5f, z,        0, -1,  0,          0, 0),
+                new Vertex(-sin60, -0.5f, -z,       0, -1,  0,          1, 0),
+                new Vertex( sin60, -0.5f, -z,       0, -1,  0,          1, 1),
+                new Vertex(sin60, -0.5f, z,         0, -1,  0,          0, 1),
             };
 
             int[] indices = {
@@ -349,7 +240,7 @@ void main() {
                 32, 33, 34, 34, 35, 32,
             };
 
-            var interleaved = new StaticArrayBuffer(array);
+            var interleaved = new StaticInterleavedVertexBuffer(vertexList);
 
             glEnableVertexAttribArray(positionLocation);
             glVertexAttribPointer(positionLocation, 3, GL_FLOAT, GL_FALSE, Vertex.SIZE_BYTES, NULL);
@@ -359,8 +250,6 @@ void main() {
 
             glEnableVertexAttribArray(texLocation);
             glVertexAttribPointer(texLocation, 2, GL_FLOAT, GL_FALSE, Vertex.SIZE_BYTES, new IntPtr(6 * sizeof(float)));
-
-#endif
 
             StaticElementArrayBuffer indexBuffer = new StaticElementArrayBuffer(indices);
 
@@ -376,12 +265,7 @@ void main() {
 
             glBindBufferRange(GL_UNIFORM_BUFFER, 0, ubo, 0, 48 * sizeof(float));
 
-            Console.WriteLine($"Vertex size: {Vertex.SIZE_BYTES}");
-            Console.WriteLine($"float size: {sizeof(float)}");
-
-
             glfwSetWindowSizeCallback(window.Id, (IntPtr _, int w, int h) => singleton.ResizeWindow(w, h));
-
 
             unsafe
             {
@@ -396,18 +280,39 @@ void main() {
             float deltaAngle = 1 / 1024f;
             Matrix4x4 changer = Matrix4x4.CreateRotationY(deltaAngle);
 
-            //float x = 2 * sin60;
-            //float angle = 0;
+            float angle = 0;
+
+            z /= 2;
 
             while (glfwWindowShouldClose(window.Id) == 0)
             {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-                //model *= Matrix4x4.CreateRotationX(deltaAngle);
-                //model *= Matrix4x4.CreateRotationZ(deltaAngle);
-                model *= Matrix4x4.CreateRotationY(deltaAngle);
-                //matrix4x4 matrixtop = model * matrixstack.peek();
+                program.Unbind();
+                glLoadIdentity();
+                glTranslatef(0, 0, 1 - z);
+                glScalef(height / (float)width, 1, 1);
+                glRotatef(angle, 0, 0, 1);
+                angle += 0.03125f;
 
+                glColor3b(0, 0x22, 0x11);
+                glBegin(GL_TRIANGLES);
+
+                glVertex3f(0, 1, 0);
+                glVertex3f(sin60, -0.5f, 0);
+                glVertex3f(-sin60, -0.5f, 0);
+
+                glVertex3f(0, 1, 0);
+                glVertex3f(-sin60, -0.5f, 0);
+                glVertex3f(sin60, -0.5f, 0);
+
+                glEnd();
+
+                //model *= Matrix4x4.CreateRotationX(deltaAngle);
+                model *= Matrix4x4.CreateRotationY(deltaAngle);
+                //model *= Matrix4x4.CreateRotationZ(deltaAngle);
+                //matrix4x4 matrixtop = model * matrixstack.peek();
+                program.Bind();
                 unsafe
                 {
                     glBufferSubData(GL_UNIFORM_BUFFER, 0 * sizeof(float), 16 * sizeof(float), new IntPtr(&model.M11));
@@ -420,22 +325,7 @@ void main() {
                 //angle += deltaAngle;
 
                 glDrawElements(GL_TRIANGLES, indices.Length, GL_UNSIGNED_INT, NULL);
-
-
-                //glScalef(2, 2, 2);
-
-                //glColor3b(0, 0x66, 0);
-                //glBegin(GL_TRIANGLES);
-
-                //glVertex3f(0, 2, -.125f);
-                //glVertex3f(x, -1, -.125f);
-                //glVertex3f(-x, -1, -.125f);
-
-                //glVertex3f(0, 2, .125f);
-                //glVertex3f(-x, -1, .125f);
-                //glVertex3f(x, -1, .125f);
-
-                //glEnd();
+                
 
                 glfwSwapBuffers(window.Id);
                 glfwPollEvents();
