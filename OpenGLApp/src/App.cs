@@ -26,10 +26,10 @@ namespace OpenGLApp
         Matrix4x4 world;
         Window window;
 
-        public static void Main(params string[] args)
+        public static int Main(params string[] args)
         {
             Console.WriteLine(File.Exists("resources/models/triforce1.obj"));
-            new App().Start(args);
+            return new App().Start(args);
         }
 
         public App()
@@ -39,10 +39,10 @@ namespace OpenGLApp
         }
 
 
-        public void Start(params string[] args)
+        public int Start(params string[] args)
         {
             if (this != singleton)
-                return;
+                return -1;
 
             fov = (float)Math.PI / 3;
             string title = "CSGL Window";
@@ -50,61 +50,6 @@ namespace OpenGLApp
             width = 1600;
             height = 900;
 
-
-#if false
-            string path = @"resources/models/triforce1.obj";
-            if (!File.Exists(path))
-                return;
-
-            string[] lines = File.ReadAllLines(path);
-
-
-            List<float> verts = new List<float>();
-            List<float> uv = new List<float>();
-            List<float> norms = new List<float>();
-            List<float> faces = new List<float>();
-            List<int> vertexIndices = new List<int>();
-            List<int> uvIndices = new List<int>();
-            List<int> normalIndices = new List<int>();
-
-            foreach(string line in lines)
-            {
-                Console.WriteLine($"Parsing: {line}");
-                string[] array = line.Split(' ');
-
-                switch (array[0])
-                {
-                    case "v":
-                        verts.Add(float.Parse(array[1]));
-                        verts.Add(float.Parse(array[2]));
-                        verts.Add(float.Parse(array[3]));
-                        break;
-                    case "vt":
-                        uv.Add(float.Parse(array[1]));
-                        uv.Add(float.Parse(array[2]));
-                        break;
-                    case "vn":
-                        norms.Add(float.Parse(array[1]));
-                        norms.Add(float.Parse(array[2]));
-                        norms.Add(float.Parse(array[3]));
-                        break;
-                    case "f":
-                        for (int i = 1; i < array.Length; ++i)
-                        {
-                            string[] array2 = array[i].Split('/');
-                            vertexIndices.Add(int.Parse(array2[0]));
-                            uvIndices.Add(int.Parse(array2[1]));
-                            normalIndices.Add(int.Parse(array2[2]));
-                        }
-                        break;
-                    default:
-                        break;
-                }
-            }
-            float[] vertices = verts.ToArray();
-
-            int[] indices = vertexIndices.ToArray();
-#endif
             //glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); // Change this to your targeted major version
             //glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5); // Change this to your targeted minor version
 
@@ -124,47 +69,24 @@ namespace OpenGLApp
             matrixStack.Push(Matrix4x4.Identity);
 
             ChangeFov(fov);
-            string vert = @"#version 450
+            string vertPath = @"resources/shaders/shader.vert";
+            string fragPath = @"resources/shaders/shader.frag";
+            if (!File.Exists(vertPath) || !File.Exists(fragPath))
+            {
+                Console.WriteLine("Cannot read shader files");
+                return -1;
+            }
+            string vert = File.ReadAllText(vertPath);
 
-layout(binding = 1) uniform UniformBufferObject {
-    mat4 model;
-    mat4 view;
-    mat4 proj;
-} ubo;
+            string frag = File.ReadAllText(fragPath);
 
-layout(location = 0) in vec3 inPosition;
-layout(location = 1) in vec3 inNormal;
-layout(location = 2) in vec2 inTexCoord;
+            string texPath = @"resources/textures/colorgrid512.bmp";
+            if (!File.Exists(texPath))
+            {
+                Console.WriteLine("Cannot read texture file");
+                return -1;
+            }
 
-layout(location = 0) out vec3 fragNormal;
-layout(location = 1) out vec2 fragTexCoord;
-
-void main() {
-    gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 1);
-    fragTexCoord = inTexCoord;
-    fragNormal = (ubo.view * ubo.model * vec4(inNormal * 0.5, 0)).xyz + 0.5;
-}
-";
-
-            string frag = @"#version 450
-
-layout(location = 0) in vec3 fragNormal;
-layout(location = 1) in vec2 fragTexCoord;
-
-layout(location = 0) out vec4 outColor;
-
-void main() {
-    float intensity;
-    intensity = dot(fragNormal, vec3(0, 0.7071, 0.7071));
-    //intensity = dot(fragNormal, vec3(0, 0, 1));
-    //outColor = intensity * vec4(fragTexCoord, 0, 1);
-    //outColor = intensity * vec4(0.75, 0.75, 0.125, 1);
-    //outColor = vec4(fragNormal, 1);
-    //outColor = vec4(fragTexCoord, 0, 1);
-
-
-    outColor = intensity * vec4(fragTexCoord, 0, 1);
-}";
 
             ShaderProgram program = new ShaderProgram(vert, frag);
 
@@ -178,50 +100,51 @@ void main() {
             uint texLocation = (uint)glGetAttribLocation(program.Id, "inTexCoord");
 
             float z = 0.0625f;
+            float t = z * 2;
             List<Vertex> vertexList = new List<Vertex>() {
-                new Vertex( 0, 1, z,                0, 0,  1,           0.5f,   1),
-                new Vertex(-sin60_2, 0.25f, z,      0, 0,  1,           0.25f,  0.625f),
-                new Vertex( sin60_2, 0.25f, z,      0, 0,  1,           0.75f,  0.625f),
-                new Vertex(-sin60, -0.5f, z,        0, 0,  1,           0,      0.25f),
-                new Vertex( 0, -0.5f, z,            0, 0,  1,           0.5f,   0.25f),
-                new Vertex(sin60, -0.5f, z,         0, 0,  1,           1,      0.25f),
+                new Vertex( 0, 1, z,                0, 0,  1,           0.5f,                   1),
+                new Vertex(-sin60_2, 0.25f, z,      0, 0,  1,           0.5f - sin60_2 * 0.5f,  0.625f),
+                new Vertex( sin60_2, 0.25f, z,      0, 0,  1,           0.5f + sin60_2 * 0.5f,  0.625f),
+                new Vertex(-sin60, -0.5f, z,        0, 0,  1,           0.5f - sin60_2,         0.25f),
+                new Vertex( 0, -0.5f, z,            0, 0,  1,           0.5f,                   0.25f),
+                new Vertex(sin60, -0.5f, z,         0, 0,  1,           0.5f + sin60_2,         0.25f),
 
-                new Vertex( 0, 1, -z,               0, 0, -1,           0.5f,   1),
-                new Vertex( sin60_2, 0.25f, -z,     0,  0, -1,          0.25f,  0.625f),
-                new Vertex(-sin60_2, 0.25f, -z,     0,  0, -1,          0.75f,  0.625f),
-                new Vertex( sin60, -0.5f, -z,       0, 0, -1,           0,      0.25f),
-                new Vertex( 0, -0.5f, -z,           0, 0, -1,           0.5f,   0.25f),
-                new Vertex(-sin60, -0.5f, -z,       0, 0, -1,           1,      0.25f),
+                new Vertex( 0, 1, -z,               0, 0, -1,           0.5f,                   1),
+                new Vertex( sin60_2, 0.25f, -z,     0,  0, -1,          0.5f - sin60_2 * 0.5f,  0.625f),
+                new Vertex(-sin60_2, 0.25f, -z,     0,  0, -1,          0.5f + sin60_2 * 0.5f,  0.625f),
+                new Vertex( sin60, -0.5f, -z,       0, 0, -1,           0.5f - sin60_2,         0.25f),
+                new Vertex( 0, -0.5f, -z,           0, 0, -1,           0.5f,                   0.25f),
+                new Vertex(-sin60, -0.5f, -z,       0, 0, -1,           0.5f + sin60_2,         0.25f),
 
                 new Vertex(-sin60, -0.5f, -z,       -0.5f, sin60, 0,    0, 0),
-                new Vertex(-sin60, -0.5f, z,        -0.5f, sin60, 0,    1, 0),
-                new Vertex( 0, 1, z,                -0.5f, sin60, 0,    1, 1),
-                new Vertex( 0, 1, -z,               -0.5f, sin60, 0,    0, 1),
+                new Vertex(-sin60, -0.5f, z,        -0.5f, sin60, 0,    z, 0),
+                new Vertex( 0, 1, z,                -0.5f, sin60, 0,    z, sin60),
+                new Vertex( 0, 1, -z,               -0.5f, sin60, 0,    0, sin60),
 
                 new Vertex(sin60, -0.5f, z,         0.5f, sin60, 0,     0, 0),
-                new Vertex(sin60, -0.5f, -z,        0.5f, sin60, 0,     1, 0),
-                new Vertex(0, 1, -z,                0.5f, sin60, 0,     1, 1),
-                new Vertex(0, 1, z,                 0.5f, sin60, 0,     0, 1),
-                                                                            
+                new Vertex(sin60, -0.5f, -z,        0.5f, sin60, 0,     z, 0),
+                new Vertex(0, 1, -z,                0.5f, sin60, 0,     z, sin60),
+                new Vertex(0, 1, z,                 0.5f, sin60, 0,     0, sin60),
+
+                new Vertex(-sin60, -0.5f, z,        0, -1,  0,          0, 0),
+                new Vertex(-sin60, -0.5f, -z,       0, -1,  0,          z, 0),
+                new Vertex( sin60, -0.5f, -z,       0, -1,  0,          z, sin60),
+                new Vertex(sin60, -0.5f, z,         0, -1,  0,          0, sin60),
+
                 new Vertex(-sin60_2, 0.25f, z,      0, -1,  0,          0, 0),
-                new Vertex(-sin60_2, 0.25f, -z,     0, -1,  0,          1, 0),
-                new Vertex( sin60_2, 0.25f, -z,     0, -1,  0,          1, 1),
-                new Vertex( sin60_2, 0.25f, z,      0, -1,  0,          0, 1),
+                new Vertex(-sin60_2, 0.25f, -z,     0, -1,  0,          z, 0),
+                new Vertex( sin60_2, 0.25f, -z,     0, -1,  0,          z, sin60_2),
+                new Vertex( sin60_2, 0.25f, z,      0, -1,  0,          0, sin60_2),
                                                                             
                 new Vertex( 0, -0.5f, z,            0.5f, sin60, 0,     0, 0),
-                new Vertex( 0, -0.5f, -z,           0.5f, sin60, 0,     1, 0),
-                new Vertex(-sin60_2, 0.25f, -z,     0.5f, sin60, 0,     1, 1),
-                new Vertex(-sin60_2, 0.25f, z,      0.5f, sin60, 0,     0, 1),
+                new Vertex( 0, -0.5f, -z,           0.5f, sin60, 0,     z, 0),
+                new Vertex(-sin60_2, 0.25f, -z,     0.5f, sin60, 0,     z, sin60_2),
+                new Vertex(-sin60_2, 0.25f, z,      0.5f, sin60, 0,     0, sin60_2),
                                                                             
                 new Vertex(0, -0.5f, -z,            -0.5f, sin60, 0,    0, 0),
-                new Vertex(0, -0.5f, z,             -0.5f, sin60, 0,    1, 0),
-                new Vertex(sin60_2, 0.25f, z,       -0.5f, sin60, 0,    1, 1),
-                new Vertex(sin60_2, 0.25f, -z,      -0.5f, sin60, 0,    0, 1),
-                                                                            
-                new Vertex(-sin60, -0.5f, z,        0, -1,  0,          0, 0),
-                new Vertex(-sin60, -0.5f, -z,       0, -1,  0,          1, 0),
-                new Vertex( sin60, -0.5f, -z,       0, -1,  0,          1, 1),
-                new Vertex(sin60, -0.5f, z,         0, -1,  0,          0, 1),
+                new Vertex(0, -0.5f, z,             -0.5f, sin60, 0,    z, 0),
+                new Vertex(sin60_2, 0.25f, z,       -0.5f, sin60, 0,    z, sin60_2),
+                new Vertex(sin60_2, 0.25f, -z,      -0.5f, sin60, 0,    0, sin60_2),
             };
 
             int[] indices = {
@@ -277,23 +200,60 @@ void main() {
                 glBufferSubData(GL_UNIFORM_BUFFER, 32 * sizeof(float), 16 * sizeof(float), new IntPtr(&world.M11));
             }
 
-            float deltaAngle = 1 / 1024f;
-            Matrix4x4 changer = Matrix4x4.CreateRotationY(deltaAngle);
+            byte[] byteArray = File.ReadAllBytes(texPath);
+            Console.WriteLine($"byte array length: {byteArray.Length}");
 
-            float angle = 0;
+            uint texture = 0;
+            glGenTextures(1, ref texture);
+            Console.WriteLine($"Texture ID: {texture}");
+            glBindTexture(GL_TEXTURE_2D, texture);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, (int)GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, (int)GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (int)GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (int)GL_LINEAR);
+            int textureWidth = 512;
+            int textureHeight = 512;
+            try
+            {
+                unsafe
+                {
+                    fixed (byte* bytePtr = &byteArray[0])
+                        glTexImage2D(GL_TEXTURE_2D, 0, (int)GL_RGB, textureWidth, textureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, new IntPtr(bytePtr));
+                }
+            }
+            catch (AccessViolationException)
+            {
+
+            }
+
+            //float deltaAngle = 1 / 1f;
+
+            //float angle = 0;
 
             z /= 2;
+
+            double t0 = glfwGetTime();
 
             while (glfwWindowShouldClose(window.Id) == 0)
             {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+                double t1 = glfwGetTime();
+
+                float deltaTime = (float)(t1 - t0);
+                t0 = t1;
+
+                model *= Matrix4x4.CreateRotationX(deltaTime);
+                //model *= Matrix4x4.CreateRotationY(deltaTime);
+                //model *= Matrix4x4.CreateRotationZ(deltaTime);
+                //matrix4x4 matrixtop = model * matrixstack.peek();
+
                 program.Unbind();
                 glLoadIdentity();
                 glTranslatef(0, 0, 1 - z);
                 glScalef(height / (float)width, 1, 1);
-                glRotatef(angle, 0, 0, 1);
-                angle += 0.03125f;
+                //glRotatef(angle, 0, 0, 1);
+                //angle += deltaTime;
 
                 glColor3b(0, 0x22, 0x11);
                 glBegin(GL_TRIANGLES);
@@ -308,10 +268,7 @@ void main() {
 
                 glEnd();
 
-                //model *= Matrix4x4.CreateRotationX(deltaAngle);
-                model *= Matrix4x4.CreateRotationY(deltaAngle);
-                //model *= Matrix4x4.CreateRotationZ(deltaAngle);
-                //matrix4x4 matrixtop = model * matrixstack.peek();
+
                 program.Bind();
                 unsafe
                 {
@@ -332,6 +289,7 @@ void main() {
             }
 
             glfwTerminate();
+            return 0;
         }
 
 

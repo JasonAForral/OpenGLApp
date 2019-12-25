@@ -11,12 +11,7 @@ namespace OpenGLApp.src.Graphics.Buffers
 
         public StaticInterleavedVertexBuffer(List<Vertex> vertexList)
         {
-            float[] vertexArray = new float[vertexList.Count * Vertex.SIZE];
-            for (int i = 0; i < vertexList.Count; i++)
-            {
-                Vertex vertex = vertexList[i];
-                _ = vertex.CopyTo(vertexArray, i * Vertex.SIZE);
-            }
+            float[] vertexArray = ToArray(vertexList);
 
             glGenBuffers(1, ref id);
             glBindBuffer(GL_ARRAY_BUFFER, id);
@@ -25,6 +20,16 @@ namespace OpenGLApp.src.Graphics.Buffers
                 fixed (void* vertexPtr = vertexArray)
                     glBufferData(GL_ARRAY_BUFFER, vertexArray.Length * sizeof(float), new IntPtr(vertexPtr), GL_STATIC_DRAW);
             }
+        }
+
+        public static float[] ToArray(List<Vertex> vertexList)
+        {
+            float[] vertexArray = new float[vertexList.Count * Vertex.SIZE];
+            for (int i = 0; i < vertexList.Count; i++)
+            {
+                _ = vertexList[i].CopyTo(vertexArray, i * Vertex.SIZE);
+            }
+            return vertexArray;
         }
     }
 }
