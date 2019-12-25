@@ -7,7 +7,7 @@ namespace OpenGLApp.src.Graphics.Buffers
     {
         protected readonly uint id;
         protected readonly uint target;
-        public uint Id { get => id; }
+        public uint Id => id;
 
 
         public Buffer(uint target)

@@ -10,6 +10,8 @@ using OpenGLApp.src.Graphics;
 using OpenGLApp.src.Graphics.Buffers;
 using OpenGLApp.src.Graphics.Shaders;
 using OpenGLApp.src.Graphics.Window;
+using System.Text;
+using OpenGLApp.src.Graphics.Textures;
 
 namespace OpenGLApp
 {
@@ -80,7 +82,7 @@ namespace OpenGLApp
 
             string frag = File.ReadAllText(fragPath);
 
-            string texPath = @"resources/textures/colorgrid512.bmp";
+            string texPath = @"resources/textures/colorgrid512.png";
             if (!File.Exists(texPath))
             {
                 Console.WriteLine("Cannot read texture file");
@@ -135,12 +137,12 @@ namespace OpenGLApp
                 new Vertex(-sin60_2, 0.25f, -z,     0, -1,  0,          z, 0),
                 new Vertex( sin60_2, 0.25f, -z,     0, -1,  0,          z, sin60_2),
                 new Vertex( sin60_2, 0.25f, z,      0, -1,  0,          0, sin60_2),
-                                                                            
+
                 new Vertex( 0, -0.5f, z,            0.5f, sin60, 0,     0, 0),
                 new Vertex( 0, -0.5f, -z,           0.5f, sin60, 0,     z, 0),
                 new Vertex(-sin60_2, 0.25f, -z,     0.5f, sin60, 0,     z, sin60_2),
                 new Vertex(-sin60_2, 0.25f, z,      0.5f, sin60, 0,     0, sin60_2),
-                                                                            
+
                 new Vertex(0, -0.5f, -z,            -0.5f, sin60, 0,    0, 0),
                 new Vertex(0, -0.5f, z,             -0.5f, sin60, 0,    z, 0),
                 new Vertex(sin60_2, 0.25f, z,       -0.5f, sin60, 0,    z, sin60_2),
@@ -200,31 +202,10 @@ namespace OpenGLApp
                 glBufferSubData(GL_UNIFORM_BUFFER, 32 * sizeof(float), 16 * sizeof(float), new IntPtr(&world.M11));
             }
 
-            byte[] byteArray = File.ReadAllBytes(texPath);
-            Console.WriteLine($"byte array length: {byteArray.Length}");
+            var texture = new Texture(texPath);
 
-            uint texture = 0;
-            glGenTextures(1, ref texture);
-            Console.WriteLine($"Texture ID: {texture}");
-            glBindTexture(GL_TEXTURE_2D, texture);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, (int)GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, (int)GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (int)GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (int)GL_LINEAR);
-            int textureWidth = 512;
-            int textureHeight = 512;
-            try
-            {
-                unsafe
-                {
-                    fixed (byte* bytePtr = &byteArray[0])
-                        glTexImage2D(GL_TEXTURE_2D, 0, (int)GL_RGB, textureWidth, textureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, new IntPtr(bytePtr));
-                }
-            }
-            catch (AccessViolationException)
-            {
-
-            }
+            if (texture.Data == null)
+                return -1;
 
             //float deltaAngle = 1 / 1f;
 
@@ -291,7 +272,6 @@ namespace OpenGLApp
             glfwTerminate();
             return 0;
         }
-
 
         private void ResizeWindow(int w, int h)
         {

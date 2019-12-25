@@ -8,7 +8,7 @@ namespace OpenGLApp.src.Graphics.Buffers
     class VertexArray
     {
         private readonly uint id;
-        public uint Id { get => id; }
+        public uint Id => id;
 
         public VertexArray()
         {

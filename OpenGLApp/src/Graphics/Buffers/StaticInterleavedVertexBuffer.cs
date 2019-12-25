@@ -6,8 +6,8 @@ namespace OpenGLApp.src.Graphics.Buffers
 {
     public class StaticInterleavedVertexBuffer
     {
-        readonly uint id;
-        uint Id { get => id; }
+        private readonly uint id;
+        public uint Id => id;
 
         public StaticInterleavedVertexBuffer(List<Vertex> vertexList)
         {
