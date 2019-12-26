@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using static CSGL.OpenGL; // gl*
@@ -9,8 +10,11 @@ namespace OpenGLApp.src.Graphics.Shaders
     {
         public uint Id { get; }
 
+        private readonly Dictionary<string, uint> locations;
+
         public ShaderProgram(string vert, string frag)
         {
+            locations = new Dictionary<string, uint>();
             Id = glCreateProgram();
             uint vertexShader = new Shader(GL_VERTEX_SHADER, vert).Id;
             uint fragShader = new Shader(GL_FRAGMENT_SHADER, frag).Id;
@@ -60,6 +64,15 @@ namespace OpenGLApp.src.Graphics.Shaders
         public void Unbind()
         {
             glUseProgram(0);
+        }
+
+        internal uint GetLocation(string key)
+        {
+            if (!locations.ContainsKey(key))
+            {
+                locations.Add(key, (uint)glGetAttribLocation(Id, key));
+            }
+            return locations[key];
         }
     }
 }
