@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using static CSGL.OpenGL; // gl*
 
 namespace OpenGLApp.src.Graphics.Shaders
@@ -28,8 +26,9 @@ namespace OpenGLApp.src.Graphics.Shaders
 
             glLinkProgram(Id);
 
+#if DEBUG
             glValidateProgram(Id);
-
+#endif
             int isLinked = 0;
 
             glGetProgramiv(Id, GL_LINK_STATUS, ref isLinked);

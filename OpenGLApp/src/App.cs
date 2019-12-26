@@ -82,7 +82,7 @@ namespace OpenGLApp
 
             string frag = File.ReadAllText(fragPath);
 
-            string texPath = @"resources/textures/colorgrid512.png";
+            string texPath = @"resources/textures/colorgrid512.bmp";
             if (!File.Exists(texPath))
             {
                 Console.WriteLine("Cannot read texture file");
@@ -224,8 +224,8 @@ namespace OpenGLApp
                 float deltaTime = (float)(t1 - t0);
                 t0 = t1;
 
-                model *= Matrix4x4.CreateRotationX(deltaTime);
-                //model *= Matrix4x4.CreateRotationY(deltaTime);
+                //model *= Matrix4x4.CreateRotationX(deltaTime);
+                model *= Matrix4x4.CreateRotationY(deltaTime);
                 //model *= Matrix4x4.CreateRotationZ(deltaTime);
                 //matrix4x4 matrixtop = model * matrixstack.peek();
 

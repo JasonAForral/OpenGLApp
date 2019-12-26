@@ -15,6 +15,9 @@ namespace OpenGLApp.src.Graphics.Textures
 
         public bool Id { get; private set; }
 
+        public uint Format { get; private set; }
+        private byte[] palette;
+
         public Texture(string path)
         {
             if (ReadFile(path) < 0)
@@ -28,7 +31,9 @@ namespace OpenGLApp.src.Graphics.Textures
                     Console.WriteLine("PNG detected");
                     ParsePNG(null);
                     break;
-                case 1:
+                case 0x424d:
+                    Console.WriteLine("BMP detected");
+                    ParseBMP(null);
                     break;
                 default:
                     Console.WriteLine("No type detected");
@@ -48,9 +53,51 @@ namespace OpenGLApp.src.Graphics.Textures
             {
                 fixed (byte* dataPtr = Data)
                 {
-                    glTexImage2D(GL_TEXTURE_2D, 0, (int)GL_RGB, Width, Height, 0, GL_RGB, GL_UNSIGNED_BYTE, new IntPtr(dataPtr));
+                    glTexImage2D(GL_TEXTURE_2D, 0, (int)Format, Width, Height, 0, Format, GL_UNSIGNED_BYTE, new IntPtr(dataPtr));
                 }
             }
+        }
+
+        public Texture ParseBMP(string path)
+        {
+
+            if (path != null)
+            {
+                if (ReadFile(path) < 0)
+                    return this;
+            }
+
+            int offset;
+            int bitsPerPixel;
+
+            unsafe
+            {
+                fixed (byte* head = raw)
+                {
+                    byte* ptr = head + 0x9;
+                    offset = (*++ptr) | (*++ptr << 8) | (*++ptr << 16) | (*++ptr << 24);
+                    ptr += 4;
+                    Width = (*++ptr) | (*++ptr << 8) | (*++ptr << 16) | (*++ptr << 24);
+                    Height = (*++ptr) | (*++ptr << 8) | (*++ptr << 16) | (*++ptr << 24);
+                    ptr += 2;
+                    bitsPerPixel = (*++ptr) | (*++ptr << 8);
+                }
+            }
+            Format = bitsPerPixel switch
+            {
+                24 => GL_RGB,
+                _ => GL_RGBA,
+            };
+            Data = new byte[raw.Length - offset];
+            Array.Copy(raw, offset, Data, 0, Data.Length);
+
+#if DEBUG
+            Console.WriteLine($"offset: {offset}");
+            Console.WriteLine($"dim: {Width} x {Height}");
+            Console.WriteLine($"Length: {Data.Length}");
+
+#endif
+            return this;
         }
 
         public Texture ParsePNG(string path)
@@ -96,26 +143,25 @@ namespace OpenGLApp.src.Graphics.Textures
                     {
                         byte* start = ptr;
                         int length = (*++ptr << 24) + (*++ptr << 16) + (*++ptr << 8) + *++ptr;
-                        int crc;
                         StringBuilder chunkType = new StringBuilder();
                         chunkType.Append((char)*++ptr);
                         chunkType.Append((char)*++ptr);
                         chunkType.Append((char)*++ptr);
                         chunkType.Append((char)*++ptr);
-                        Console.WriteLine($"{length} {chunkType.ToString()}");
                         switch (chunkType.ToString())
                         {
                             case "IHDR":
+                                Console.WriteLine(" IHDR");
                                 Width = (*++ptr << 24) + (*++ptr << 16) + (*++ptr << 8) + *++ptr;
                                 Height = (*++ptr << 24) + (*++ptr << 16) + (*++ptr << 8) + *++ptr;
-                                bitDepth = *++ptr; // 8
-                                colorType = *++ptr; // 6
-                                compMethod = *++ptr; // 0
-                                filterMethod = *++ptr; // 0
-                                interlaceMethod = *++ptr; // 0
+                                bitDepth = *++ptr; 
+                                colorType = *++ptr; 
+                                compMethod = *++ptr; 
+                                filterMethod = *++ptr; 
+                                interlaceMethod = *++ptr; 
                                 Console.WriteLine($" width: {Width}, height: {Height}");
                                 Console.WriteLine($"bit {bitDepth}, color {colorType}, comp {compMethod}, filter {filterMethod}, interlaced {interlaceMethod}");
-                                crc = (*++ptr << 24) & (*++ptr << 16) & (*++ptr << 8) & *++ptr;
+                                ptr += 4;
                                 int arrayLength = Width * Height * colorType switch
                                 {
                                     0 => bitDepth,
@@ -123,35 +169,49 @@ namespace OpenGLApp.src.Graphics.Textures
                                     3 => bitDepth,
                                     4 => 2 * bitDepth,
                                     6 => 4 * bitDepth,
-                                    _ => throw new Exception("Invalid color type!"),
+                                    _ => throw new Exception("Error: Invalid color type."),
                                 };
 
                                 Data = new byte[arrayLength];
 
                                 break;
                             case "PLTE":
-                                Console.WriteLine(" PLTE!");
-                                ptr += length + 4;
+                                Console.WriteLine(" PLTE");
+                                if (length % 3f != 0)
+                                    throw new Exception("Palette bytes is divisible by 3");
+
+                                palette = new byte[length];
+                                //for (int i = 0; i < length; ++i)
+                                //{
+                                //    palette[i] = *++ptr;
+                                //}
+                                Array.Copy(raw, ptr - head + 1, palette, 0, length);
+                                //for (int i = 0; i < length; ++i)
+                                //    Console.WriteLine($"{palette[i]} ");
+                                ptr += length;
+                                ptr += 4;
                                 break;
                             case "IDAT":
-                                Console.WriteLine(" IDAT!");
-                                ptr += length + 4;
+                                Console.WriteLine(" IDAT");
+                                Console.WriteLine($"length: {length}");
+                                ptr += length;
+                                ptr += 4;
                                 break;
                             case "IEND":
-                                Console.WriteLine(" IEND!");
-                                crc = (*++ptr << 24) + (*++ptr << 16) + (*++ptr << 8) + *++ptr;
+                                Console.WriteLine(" IEND");
+                                ptr += 4;
                                 ptr = end;
                                 break;
                             case "pHYs":
-                                Console.WriteLine(" pHYs!");
+                                Console.WriteLine(" pHYs");
                                 ppuX = (*++ptr << 24) + (*++ptr << 16) + (*++ptr << 8) + *++ptr;
                                 ppuY = (*++ptr << 24) + (*++ptr << 16) + (*++ptr << 8) + *++ptr;
                                 unitSpecifier = *++ptr;
-                                crc = (*++ptr << 24) + (*++ptr << 16) + (*++ptr << 8) + *++ptr;
+                                ptr += 4;
                                 Console.WriteLine($"PPU {ppuX}, {ppuY} : {unitSpecifier}");
                                 break;
                             default:
-                                Console.WriteLine(" unknown");
+                                Console.WriteLine($" {chunkType.ToString()} is unknown");
                                 ptr += length + 4;
                                 break;
                         }

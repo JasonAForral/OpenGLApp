@@ -51,7 +51,7 @@ namespace OpenGLApp.src.Graphics.Buffers
             {
                 fixed (void* arrayPtr = array)
                 {
-                    glBufferData(target, array.Length * sizeof(float), new IntPtr(arrayPtr), usage);
+                    glBufferData(target, array.Length * sizeof(int), new IntPtr(arrayPtr), usage);
                 }
             }
         }

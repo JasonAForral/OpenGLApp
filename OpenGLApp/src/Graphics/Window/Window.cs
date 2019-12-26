@@ -6,7 +6,7 @@ namespace OpenGLApp.src.Graphics.Window
 {
     class Window
     {
-        public IntPtr Id { get; }
+        public IntPtr Id { get; private set; }
         public int Width { get; set; }
         public int Height { get; set; }
         public string Title { get; set; }

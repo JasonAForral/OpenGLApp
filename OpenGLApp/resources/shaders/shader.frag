@@ -1,11 +1,11 @@
-﻿#version 450
+﻿#version 330
 
-layout(location = 0) in vec3 fragNormal;
-layout(location = 1) in vec2 fragTexCoord;
+in vec3 fragNormal;
+in vec2 fragTexCoord;
 
 uniform sampler2D uTexture;
 
-layout(location = 0) out vec4 outColor;
+out vec4 outColor;
 
 void main() {
     float intensity;
