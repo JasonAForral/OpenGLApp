@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Text;
+using System.Runtime.InteropServices;
 using static CSGL.OpenGL; // gl*
 
 namespace OpenGLApp.src.Graphics.Shaders
@@ -11,18 +11,12 @@ namespace OpenGLApp.src.Graphics.Shaders
         public Shader(uint shaderType, string shaderScript)
         {
             Id = glCreateShader(shaderType);
+
             int length = shaderScript.Length;
+            var intPtr = Marshal.StringToCoTaskMemAnsi(shaderScript);
+            glShaderSource(Id, 1, ref intPtr, ref length);
 
-            var bytes = Encoding.ASCII.GetBytes(shaderScript);
-
-            unsafe
-            {
-                fixed(void* ptr = bytes)
-                {
-                    var intPtr = new IntPtr(ptr);
-                    glShaderSource(Id, 1, ref intPtr, ref length);
-                }
-            }
+            Marshal.FreeCoTaskMem(intPtr);
 
             glCompileShader(Id);
 
@@ -38,16 +32,12 @@ namespace OpenGLApp.src.Graphics.Shaders
             {
                 glGetShaderiv(Id, GL_INFO_LOG_LENGTH, ref length);
 
-                bytes = new byte[length];
-                unsafe
-                {
-                    fixed (void* ptr = bytes)
-                    {
-                        var intPtr = new IntPtr(ptr);
-                        glGetShaderInfoLog(Id, length, ref length, intPtr);
-                    }
-                }
-                Console.Error.WriteLine(Encoding.ASCII.GetString(bytes));
+                intPtr = Marshal.AllocCoTaskMem(length);
+                glGetShaderInfoLog(Id, length, ref length, intPtr);
+
+                Console.Error.WriteLine(Marshal.PtrToStringAnsi(intPtr));
+
+                Marshal.FreeCoTaskMem(intPtr);
                 Id = 0;
             }
         }

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Runtime.InteropServices;
 using static CSGL.OpenGL; // gl*
 
 namespace OpenGLApp.src.Graphics.Shaders
@@ -42,17 +42,10 @@ namespace OpenGLApp.src.Graphics.Shaders
                 int length = 0;
                 glGetProgramiv(Id, GL_INFO_LOG_LENGTH, ref length);
 
-                var bytes = new byte[length];
-                unsafe
-                {
-                    fixed(byte* ptr = bytes)
-                    {
-                        var intPtr = new IntPtr(ptr);
-                        glGetProgramInfoLog(Id, length, ref length, intPtr);
-                    }
-                }
-
-                Console.Error.WriteLine(Encoding.ASCII.GetString(bytes));
+                var intPtr = Marshal.AllocCoTaskMem(length);
+                glGetProgramInfoLog(Id, length, ref length, intPtr);
+                Console.Error.WriteLine(Marshal.PtrToStringAnsi(intPtr));
+                Marshal.FreeCoTaskMem(intPtr);
                 Id = 0;
                 return;
             }
