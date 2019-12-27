@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Linq;
 using System.Text;
-using System.Collections.Generic;
-using static CSGL.CSGL;   // csgl*
-using static CSGL.Glfw3;  // glfw*
 using static CSGL.OpenGL; // gl*
-using System.Runtime.InteropServices;
 
 namespace OpenGLApp.src.Graphics.Shaders
 {
@@ -16,35 +11,43 @@ namespace OpenGLApp.src.Graphics.Shaders
         public Shader(uint shaderType, string shaderScript)
         {
             Id = glCreateShader(shaderType);
-            IntPtr scriptPtr = Marshal.AllocHGlobal(shaderScript.Length);
-            Marshal.Copy(Encoding.ASCII.GetBytes(shaderScript), 0, scriptPtr, shaderScript.Length);
-
             int length = shaderScript.Length;
 
-            glShaderSource(Id, 1, ref scriptPtr, ref length);
-            glCompileShader(Id);
+            var bytes = Encoding.ASCII.GetBytes(shaderScript);
 
-            Marshal.FreeHGlobal(scriptPtr);
+            unsafe
+            {
+                fixed(void* ptr = bytes)
+                {
+                    var intPtr = new IntPtr(ptr);
+                    glShaderSource(Id, 1, ref intPtr, ref length);
+                }
+            }
+
+            glCompileShader(Id);
 
             int isCompiled = 0;
 
             glGetShaderiv(Id, GL_COMPILE_STATUS, ref isCompiled);
 
+#if DEBUG
+            Console.WriteLine($"Compiled: 0x{shaderType:x}\t{isCompiled}");
+#endif
+
             if (isCompiled == 0)
             {
-                int loglen = 0;
-                glGetShaderiv(Id, GL_INFO_LOG_LENGTH, ref loglen);
+                glGetShaderiv(Id, GL_INFO_LOG_LENGTH, ref length);
 
-                IntPtr log = Marshal.AllocHGlobal(loglen);
-
-                glGetShaderInfoLog(Id, loglen, ref loglen, log);
-
-                char[] chrs = new char[loglen];
-                string logs = "";
-                Marshal.Copy(log, chrs, 0, loglen);
-                logs.Concat(chrs.AsEnumerable());
-                Marshal.FreeHGlobal(log);
-                Console.Error.WriteLine(logs);
+                bytes = new byte[length];
+                unsafe
+                {
+                    fixed (void* ptr = bytes)
+                    {
+                        var intPtr = new IntPtr(ptr);
+                        glGetShaderInfoLog(Id, length, ref length, intPtr);
+                    }
+                }
+                Console.Error.WriteLine(Encoding.ASCII.GetString(bytes));
                 Id = 0;
             }
         }

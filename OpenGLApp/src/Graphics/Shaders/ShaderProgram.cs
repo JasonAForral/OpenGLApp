@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
+using System.Text;
 using static CSGL.OpenGL; // gl*
 
 namespace OpenGLApp.src.Graphics.Shaders
@@ -16,8 +15,8 @@ namespace OpenGLApp.src.Graphics.Shaders
         {
             locations = new Dictionary<string, uint>();
             Id = glCreateProgram();
-            uint vertexShader = new Shader(GL_VERTEX_SHADER, vert).Id;
-            uint fragShader = new Shader(GL_FRAGMENT_SHADER, frag).Id;
+            var vertexShader = new Shader(GL_VERTEX_SHADER, vert).Id;
+            var fragShader = new Shader(GL_FRAGMENT_SHADER, frag).Id;
 
             glAttachShader(Id, vertexShader);
             glAttachShader(Id, fragShader);
@@ -30,27 +29,30 @@ namespace OpenGLApp.src.Graphics.Shaders
 
             glLinkProgram(Id);
 
-#if DEBUG
-            glValidateProgram(Id);
-#endif
             int isLinked = 0;
 
             glGetProgramiv(Id, GL_LINK_STATUS, ref isLinked);
+#if DEBUG
+            glValidateProgram(Id);
+            Console.WriteLine($"Linked: {isLinked}");
+#endif
+
             if (isLinked == 0)
             {
-                int loglen = 0;
-                glGetProgramiv(Id, GL_INFO_LOG_LENGTH, ref loglen);
+                int length = 0;
+                glGetProgramiv(Id, GL_INFO_LOG_LENGTH, ref length);
 
-                IntPtr log = Marshal.AllocHGlobal(loglen);
+                var bytes = new byte[length];
+                unsafe
+                {
+                    fixed(byte* ptr = bytes)
+                    {
+                        var intPtr = new IntPtr(ptr);
+                        glGetProgramInfoLog(Id, length, ref length, intPtr);
+                    }
+                }
 
-                glGetProgramInfoLog(Id, loglen, ref loglen, log);
-
-                char[] chrs = new char[loglen];
-                string logs = null;
-                Marshal.Copy(log, chrs, 0, loglen);
-                logs.Concat(chrs.AsEnumerable());
-                Marshal.FreeHGlobal(log);
-                Console.Error.WriteLine(logs);
+                Console.Error.WriteLine(Encoding.ASCII.GetString(bytes));
                 Id = 0;
                 return;
             }

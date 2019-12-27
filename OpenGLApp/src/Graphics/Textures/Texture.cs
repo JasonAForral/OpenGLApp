@@ -23,8 +23,13 @@ namespace OpenGLApp.src.Graphics.Textures
             if (ReadFile(path) < 0)
                 return;
 
-            int candidate = (raw[0] << 8) + raw[1];
-            Console.WriteLine($"Checking: {candidate:x4}");
+            int candidate = (raw[0] << 8) | raw[1];
+#if DEBUG
+            Console.WriteLine($"Checking: 0x{candidate:x4}");
+            Console.WriteLine($"{raw[0]:x2} {raw[1]:x2} {raw[2]:x2} {raw[3]:x2} {raw[4]:x2} {raw[5]:x2} {raw[6]:x2} {raw[7]:x2}");
+            Console.WriteLine($"{(char)raw[0]}{(char)raw[1]}{(char)raw[2]}{(char)raw[3]}{(char)raw[4]}{(char)raw[5]}{(char)raw[6]}{(char)raw[7]}");
+
+#endif
             switch (candidate)
             {
                 case 0x8950:
