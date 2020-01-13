@@ -1,0 +1,19 @@
+Usage:
+
+----------
+
+void CSGLSpriteBatch.Begin( int amount = 0 )
+amount: amount of sprites to pre-scale the buffers to
+Begins the spritebatch.
+
+void CSGLSpriteBatch.Draw( CSGLSprite sprite )
+Queues the current sprite for drawing.
+
+void CSGLSpriteBatch.Draw( CSGLSprite sprite, float x, float y )
+Queues the current sprite for drawing; but changes attributes first.
+
+void CSGLSpriteBatch.Draw( CSGLSprite sprite, float x, float y, float w, float h )
+Queues the current sprite for drawing; but changes attributes first.
+
+void CSGLSpriteBatch.End()
+Finishes the spritebatch and draws it.

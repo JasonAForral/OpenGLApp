@@ -1,0 +1,42 @@
+Creation:
+
+----------
+
+CSGLShader = CSGLShader.FromPointer( IntPtr vertexSource, IntPtr fragmentSource )
+*Source: IntPtr to null-ended string
+
+
+--- or ---
+
+CSGLShader = CSGLShader.FromBytes( byte[] vertexSource, byte[] fragmentSource )
+*Source: byte[] ASCII-encoded string
+
+--- or ---
+
+CSGLShader = CSGLShader.FromString( string vertexSource, string fragmentSource )
+*Source: string source
+
+--- or ---
+
+CSGLShader = CSGLShader.FromFile( string vertexFile, string fragmentFile )
+*File: (relative) path to file
+
+----------
+
+
+
+Usage:
+
+----------
+
+void CSGLShader.Use( void )
+Uses current shader program.
+
+int CSGLShader.GetUniformLocation( string name )
+Returns the location of the desired uniform.
+
+void Set*( string name, ... )
+Sets the uniform by name lookup; this is less efficient than using integer location.
+
+void Set*( int location, ... )
+Sets the uniform by integer location.

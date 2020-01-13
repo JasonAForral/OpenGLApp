@@ -13,10 +13,10 @@ namespace OpenGLApp.src.Graphics.Shaders
             Id = glCreateShader(shaderType);
 
             int length = shaderScript.Length;
-            var intPtr = Marshal.StringToCoTaskMemAnsi(shaderScript);
+            var intPtr = Marshal.StringToHGlobalAnsi(shaderScript);
             glShaderSource(Id, 1, ref intPtr, ref length);
 
-            Marshal.FreeCoTaskMem(intPtr);
+            Marshal.FreeHGlobal(intPtr);
 
             glCompileShader(Id);
 
@@ -32,12 +32,12 @@ namespace OpenGLApp.src.Graphics.Shaders
             {
                 glGetShaderiv(Id, GL_INFO_LOG_LENGTH, ref length);
 
-                intPtr = Marshal.AllocCoTaskMem(length);
+                intPtr = Marshal.AllocHGlobal(length);
                 glGetShaderInfoLog(Id, length, ref length, intPtr);
 
                 Console.Error.WriteLine(Marshal.PtrToStringAnsi(intPtr));
 
-                Marshal.FreeCoTaskMem(intPtr);
+                Marshal.FreeHGlobal(intPtr);
                 Id = 0;
             }
         }

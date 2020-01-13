@@ -5,7 +5,7 @@ in vec2 fragTexCoord;
 
 uniform sampler2D uTexture;
 
-out vec4 outColor;s
+out vec4 outColor;
 
 void main() {
     float intensity;

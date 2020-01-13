@@ -1,0 +1,40 @@
+Creation:
+
+----------
+
+CSGLSprite = new CSGLSprite( float width, float height, uint texture )
+width:		desired sprite width
+height:		desired sprite height
+texture:	texture to bind to
+
+----------
+
+
+
+Usage:
+
+----------
+
+float field CSGLSprite.X
+Sets/gets the X co-ordinate of the sprite.
+
+float field CSGLSprite.Y
+Sets/gets the Y co-ordinate of the sprite.
+
+float field CSGLSprite.Width
+Sets/gets the width of the sprite.
+
+float field CSGLSprite.Height
+Sets/gets the height of the sprite.
+
+float field CSGLSprite.OriginalWidth
+Gets the original width of the sprite.
+
+float field CSGLSprite.OriginalHeight
+Gets the original width of the sprite.
+
+void CSGLSprite.Upload( void )
+Uploads any changes to the vertices to the GPU.
+
+void CSGLSprite.Draw( void )
+Draws the current sprite; use matrix transformations to change size/location.

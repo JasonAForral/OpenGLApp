@@ -168,13 +168,22 @@ namespace CSGL
 
 		#region Constants
 		public const int GLFW_VERSION_MAJOR = 3;
-		public const int GLFW_VERSION_MINOR = 2;
-		public const int GLFW_VERSION_REVISION = 1;
+		public const int GLFW_VERSION_MINOR = 3;
+		public const int GLFW_VERSION_REVISION = 0;
 		public const int GLFW_TRUE = 1;
 		public const int GLFW_FALSE = 0;
 		public const int GLFW_RELEASE = 0;
 		public const int GLFW_PRESS = 1;
 		public const int GLFW_REPEAT = 2;
+		public const int GLFW_HAT_CENTERED = 0;
+		public const int GLFW_HAT_UP = 1;
+		public const int GLFW_HAT_RIGHT = 2;
+		public const int GLFW_HAT_DOWN = 4;
+		public const int GLFW_HAT_LEFT = 8;
+		public const int GLFW_HAT_RIGHT_UP = (GLFW_HAT_RIGHT | GLFW_HAT_UP);
+		public const int GLFW_HAT_RIGHT_DOWN = (GLFW_HAT_RIGHT | GLFW_HAT_DOWN);
+		public const int GLFW_HAT_LEFT_UP = (GLFW_HAT_LEFT | GLFW_HAT_UP);
+		public const int GLFW_HAT_LEFT_DOWN = (GLFW_HAT_LEFT | GLFW_HAT_DOWN);
 		public const int GLFW_KEY_UNKNOWN = -1;
 		public const int GLFW_KEY_SPACE = 32;
 		public const int GLFW_KEY_APOSTROPHE = 39;
@@ -301,6 +310,8 @@ namespace CSGL
 		public const int GLFW_MOD_CONTROL = 2;
 		public const int GLFW_MOD_ALT = 4;
 		public const int GLFW_MOD_SUPER = 8;
+		public const int GLFW_MOD_CAPS_LOCK = 0x0010;
+		public const int GLFW_MOD_NUM_LOCK = 0x0020;
 		public const int GLFW_MOUSE_BUTTON_1 = 0;
 		public const int GLFW_MOUSE_BUTTON_2 = 1;
 		public const int GLFW_MOUSE_BUTTON_3 = 2;
@@ -330,6 +341,34 @@ namespace CSGL
 		public const int GLFW_JOYSTICK_15 = 14;
 		public const int GLFW_JOYSTICK_16 = 15;
 		public const int GLFW_JOYSTICK_LAST = GLFW_JOYSTICK_16;
+		public const int GLFW_GAMEPAD_BUTTON_A = 0;
+		public const int GLFW_GAMEPAD_BUTTON_B = 1;
+		public const int GLFW_GAMEPAD_BUTTON_X = 2;
+		public const int GLFW_GAMEPAD_BUTTON_Y = 3;
+		public const int GLFW_GAMEPAD_BUTTON_LEFT_BUMPER = 4;
+		public const int GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER = 5;
+		public const int GLFW_GAMEPAD_BUTTON_BACK = 6;
+		public const int GLFW_GAMEPAD_BUTTON_START = 7;
+		public const int GLFW_GAMEPAD_BUTTON_GUIDE = 8;
+		public const int GLFW_GAMEPAD_BUTTON_LEFT_THUMB = 9;
+		public const int GLFW_GAMEPAD_BUTTON_RIGHT_THUMB = 10;
+		public const int GLFW_GAMEPAD_BUTTON_DPAD_UP = 11;
+		public const int GLFW_GAMEPAD_BUTTON_DPAD_RIGHT = 12;
+		public const int GLFW_GAMEPAD_BUTTON_DPAD_DOWN = 13;
+		public const int GLFW_GAMEPAD_BUTTON_DPAD_LEFT = 14;
+		public const int GLFW_GAMEPAD_BUTTON_LAST = GLFW_GAMEPAD_BUTTON_DPAD_LEFT;
+		public const int GLFW_GAMEPAD_BUTTON_CROSS = GLFW_GAMEPAD_BUTTON_A;
+		public const int GLFW_GAMEPAD_BUTTON_CIRCLE = GLFW_GAMEPAD_BUTTON_B;
+		public const int GLFW_GAMEPAD_BUTTON_SQUARE = GLFW_GAMEPAD_BUTTON_X;
+		public const int GLFW_GAMEPAD_BUTTON_TRIANGLE = GLFW_GAMEPAD_BUTTON_Y;
+		public const int GLFW_GAMEPAD_AXIS_LEFT_X = 0;
+		public const int GLFW_GAMEPAD_AXIS_LEFT_Y = 1;
+		public const int GLFW_GAMEPAD_AXIS_RIGHT_X = 2;
+		public const int GLFW_GAMEPAD_AXIS_RIGHT_Y = 3;
+		public const int GLFW_GAMEPAD_AXIS_LEFT_TRIGGER = 4;
+		public const int GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER = 5;
+		public const int GLFW_GAMEPAD_AXIS_LAST = GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER;
+		public const int GLFW_NO_ERROR = 0;
 		public const int GLFW_NOT_INITIALIZED = 65537;
 		public const int GLFW_NO_CURRENT_CONTEXT = 65538;
 		public const int GLFW_INVALID_ENUM = 65539;
@@ -348,6 +387,10 @@ namespace CSGL
 		public const int GLFW_AUTO_ICONIFY = 131078;
 		public const int GLFW_FLOATING = 131079;
 		public const int GLFW_MAXIMIZED = 131080;
+		public const int GLFW_CENTER_CURSOR = 0x00020009;
+		public const int GLFW_TRANSPARENT_FRAMEBUFFER = 0x0002000A;
+		public const int GLFW_HOVERED = 0x0002000B;
+		public const int GLFW_FOCUS_ON_SHOW = 0x0002000C;
 		public const int GLFW_RED_BITS = 135169;
 		public const int GLFW_GREEN_BITS = 135170;
 		public const int GLFW_BLUE_BITS = 135171;
@@ -375,6 +418,12 @@ namespace CSGL
 		public const int GLFW_CONTEXT_RELEASE_BEHAVIOR = 139273;
 		public const int GLFW_CONTEXT_NO_ERROR = 139274;
 		public const int GLFW_CONTEXT_CREATION_API = 139275;
+		public const int GLFW_SCALE_TO_MONITOR = 0x0002200C;
+		public const int GLFW_COCOA_RETINA_FRAMEBUFFER = 0x00023001;
+		public const int GLFW_COCOA_FRAME_NAME = 0x00023002;
+		public const int GLFW_COCOA_GRAPHICS_SWITCHING = 0x00023003;
+		public const int GLFW_X11_CLASS_NAME = 0x00024001;
+		public const int GLFW_X11_INSTANCE_NAME = 0x00024001;
 		public const int GLFW_NO_API = 0;
 		public const int GLFW_OPENGL_API = 196609;
 		public const int GLFW_OPENGL_ES_API = 196610;
@@ -387,6 +436,8 @@ namespace CSGL
 		public const int GLFW_CURSOR = 208897;
 		public const int GLFW_STICKY_KEYS = 208898;
 		public const int GLFW_STICKY_MOUSE_BUTTONS = 208899;
+		public const int GLFW_LOCK_KEY_MODS = 0x00033004;
+		public const int GLFW_RAW_MOUSE_MOTION = 0x00033005;
 		public const int GLFW_CURSOR_NORMAL = 212993;
 		public const int GLFW_CURSOR_HIDDEN = 212994;
 		public const int GLFW_CURSOR_DISABLED = 212995;
@@ -395,6 +446,7 @@ namespace CSGL
 		public const int GLFW_RELEASE_BEHAVIOR_NONE = 217090;
 		public const int GLFW_NATIVE_CONTEXT_API = 221185;
 		public const int GLFW_EGL_CONTEXT_API = 221186;
+		public const int GLFW_OSMESA_CONTEXT_API = 0x00036003;
 		public const int GLFW_ARROW_CURSOR = 221185;
 		public const int GLFW_IBEAM_CURSOR = 221186;
 		public const int GLFW_CROSSHAIR_CURSOR = 221187;
@@ -403,6 +455,9 @@ namespace CSGL
 		public const int GLFW_VRESIZE_CURSOR = 221190;
 		public const int GLFW_CONNECTED = 262145;
 		public const int GLFW_DISCONNECTED = 262146;
+		public const int GLFW_JOYSTICK_HAT_BUTTONS = 0x00050001;
+		public const int GLFW_COCOA_CHDIR_RESOURCES = 0x00051001;
+		public const int GLFW_COCOA_MENUBAR = 0x00051002;
 		public const int GLFW_DONT_CARE = -1;
 		#endregion
 
@@ -630,6 +685,8 @@ namespace CSGL
 		public delegate int PFNGLFWVULKANSUPPORTEDPROC();
 		[UnmanagedFunctionPointer( CallingConvention.Cdecl )]
 		public delegate IntPtr PFNGLFWGETREQUIREDINSTANCEEXTENSIONSPROC( ref uint count );
+		[UnmanagedFunctionPointer( CallingConvention.Cdecl )]
+		public delegate int PFNGLFWGETERRORPROC( out IntPtr description );
 		#endregion
 
 		#region Structures

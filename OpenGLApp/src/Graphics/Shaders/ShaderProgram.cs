@@ -42,10 +42,10 @@ namespace OpenGLApp.src.Graphics.Shaders
                 int length = 0;
                 glGetProgramiv(Id, GL_INFO_LOG_LENGTH, ref length);
 
-                var intPtr = Marshal.AllocCoTaskMem(length);
+                var intPtr = Marshal.AllocHGlobal(length);
                 glGetProgramInfoLog(Id, length, ref length, intPtr);
                 Console.Error.WriteLine(Marshal.PtrToStringAnsi(intPtr));
-                Marshal.FreeCoTaskMem(intPtr);
+                Marshal.FreeHGlobal(intPtr);
                 Id = 0;
                 return;
             }

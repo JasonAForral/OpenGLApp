@@ -1,0 +1,81 @@
+Creation:
+
+----------
+
+CSGLWindow = new CSGLWindow( int width = 640, int height = 480, string title = "CSGLWindow" )
+width:	desired window width  [default: 640]
+height:	desired window height [default: 480]
+title:	desired window title  [default: "CSGLWindow"]
+
+The creation of a CSGLWindow automatically initializes OpenGL.
+
+----------
+
+
+
+Events:
+
+----------
+
+A CSGLWindow has a few event callbacks.
+
+OnKeyboard( IntPtr window, int key, int scancode, int action, int mods )
+GLFW key callback.
+
+OnCursorMoved( IntPtr window, double xpos, double ypos )
+GLFW cursorpos callback.
+
+OnCursorEnteredLeft( IntPtr window, int entered )
+GLFW cursorenter callback.
+
+OnMouse( IntPtr window, int button, int action, int mods )
+GLFW mousebutton callback.
+
+OnScroll( IntPtr window, double xoffset, double yoffset )
+GLFW scroll callback.
+
+OnDraw( CSGLWindow sender, double deltaTime )
+sender:		whatever called OnDraw
+deltaTime:	time since last OnDraw call in seconds
+Called every main loop iteration.
+
+OnUpdate( CSGLWindow sender, double deltaTime )
+sender:		whatever called OnUpdate
+deltaTime:	time since last OnUpdate call in seconds
+Called every main loop iteration.
+
+----------
+
+
+
+Usage:
+
+----------
+
+void CSGLWindow.MakeContextCurrent( void )
+Sets the GLContext to this window.
+
+void Run( void )
+Starts the main loop; link desired event delegates before calling this.
+
+int field CSGLWindow.X
+Sets/gets the X location of the window.
+
+int field CSGLWindow.Y
+Sets/gets the Y location of the window.
+
+int field CSGLWindow.Width
+Sets/gets the width of the window.
+
+int field CSGLWindow.Height
+Sets/gets the height of the window.
+
+string field CSGLWindow.Title
+Sets/gets the title of the window.
+
+CSGLWindowStyle field CSGLWindow.Style
+Sets/gets the bitflags WindowStyle of the window.
+Normal			-> Standard window
+Borderless		-> Undecorated window
+Fullscreen		-> Fullscreen window
+Fullscreen | Borderless	-> Fullscreen borderless window (a.k.a. "windowed fullscreen")

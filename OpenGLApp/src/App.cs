@@ -12,21 +12,24 @@ using OpenGLApp.src.Graphics.Shaders;
 using OpenGLApp.src.Graphics.Window;
 using System.Text;
 using OpenGLApp.src.Graphics.Textures;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace OpenGLApp
 {
     public class App
     {
-        private const float sin60 = 0.866025388240814208984375f;
-        private const float sin60_2 = sin60 / 2f;
-        static App singleton = null;
-
-        int width, height;
-        float fov;
-        Stack<Matrix4x4> matrixStack;
-        Matrix4x4 view;
-        Matrix4x4 world;
-        Window window;
+        #region Fields
+        private const float s = 0.8660254f;
+        private const float t = s / 2f;
+        private static App singleton = null;
+        private int width, height;
+        private float fov;
+        private Stack<Matrix4x4> matrixStack;
+        private Matrix4x4 view;
+        private Matrix4x4 world;
+        private Window window;
+        #endregion
 
         public static int Main(params string[] args)
         {
@@ -43,10 +46,18 @@ namespace OpenGLApp
 
         public int Start(params string[] args)
         {
+
+#if UNSAFE
+            Console.WriteLine("Usafe are enabled");
+#else
+            Console.WriteLine("Usafe are disabled");
+#endif
+            #region Something
             if (this != singleton)
                 return -1;
 
-            fov = (float)Math.PI / 3;
+            fov = MathF.PI / 3;
+
             string title = "CSGL Window";
 
             width = 1600;
@@ -63,14 +74,18 @@ namespace OpenGLApp
 
             glEnable(GL_DEPTH_TEST);
             glEnable(GL_CULL_FACE);
+            #endregion
 
+            #region Matrix Init
             Matrix4x4 model = Matrix4x4.Identity;
             view = Matrix4x4.CreateTranslation(0, 0, -2);
             world = Matrix4x4.CreatePerspectiveFieldOfView(fov, width / (float)height, 0.125f, 1024f);
             matrixStack = new Stack<Matrix4x4>();
             matrixStack.Push(Matrix4x4.Identity);
-
             ChangeFov(fov);
+            #endregion
+
+            #region File Checking
             string vertPath = @"resources/shaders/shader.vert";
             string fragPath = @"resources/shaders/shader.frag";
             if (!File.Exists(vertPath) || !File.Exists(fragPath))
@@ -88,65 +103,62 @@ namespace OpenGLApp
                 Console.WriteLine("Cannot read texture file");
                 return -1;
             }
+            #endregion
 
-
-            ShaderProgram program = new ShaderProgram(vert, frag);
-
+            #region Shader and polygon init
+            var program = new ShaderProgram(vert, frag);
             program.Bind();
 
-            VertexArray vao = new VertexArray();
+            var vao = new VertexArray();
             vao.Bind();
 
-            
-
-            float z = 0.0625f;
-            float t = z * 2;
+            const float z = 0.0625f;
             int length;
             {
-                List<Vertex> vertexList = new List<Vertex>() {
-                    new Vertex( 0, 1, z,                0, 0,  1,           0.5f,                   1),
-                    new Vertex(-sin60_2, 0.25f, z,      0, 0,  1,           0.5f - sin60_2 * 0.5f,  0.625f),
-                    new Vertex( sin60_2, 0.25f, z,      0, 0,  1,           0.5f + sin60_2 * 0.5f,  0.625f),
-                    new Vertex(-sin60, -0.5f, z,        0, 0,  1,           0.5f - sin60_2,         0.25f),
-                    new Vertex( 0, -0.5f, z,            0, 0,  1,           0.5f,                   0.25f),
-                    new Vertex(sin60, -0.5f, z,         0, 0,  1,           0.5f + sin60_2,         0.25f),
+                var vertexList = new List<Vertex>() {
+                    new Vertex( 0, 1, z,        0, 0,  1,       0.5f,             1),
+                    new Vertex(-t, 0.25f, z,    0, 0,  1,       0.5f - t * 0.5f,  0.625f),
+                    new Vertex( t, 0.25f, z,    0, 0,  1,       0.5f + t * 0.5f,  0.625f),
+                    new Vertex(-s, -0.5f, z,    0, 0,  1,       0.5f - t,         0.25f),
+                    new Vertex( 0, -0.5f, z,    0, 0,  1,       0.5f,             0.25f),
+                    new Vertex(s, -0.5f, z,     0, 0,  1,       0.5f + t,         0.25f),
 
-                    new Vertex( 0, 1, -z,               0, 0, -1,           0.5f,                   1),
-                    new Vertex( sin60_2, 0.25f, -z,     0,  0, -1,          0.5f - sin60_2 * 0.5f,  0.625f),
-                    new Vertex(-sin60_2, 0.25f, -z,     0,  0, -1,          0.5f + sin60_2 * 0.5f,  0.625f),
-                    new Vertex( sin60, -0.5f, -z,       0, 0, -1,           0.5f - sin60_2,         0.25f),
-                    new Vertex( 0, -0.5f, -z,           0, 0, -1,           0.5f,                   0.25f),
-                    new Vertex(-sin60, -0.5f, -z,       0, 0, -1,           0.5f + sin60_2,         0.25f),
+                    new Vertex( 0, 1, -z,       0, 0, -1,       0.5f,             1),
+                    new Vertex( t, 0.25f, -z,   0, 0, -1,       0.5f - t * 0.5f,  0.625f),
+                    new Vertex(-t, 0.25f, -z,   0, 0, -1,       0.5f + t * 0.5f,  0.625f),
+                    new Vertex( s, -0.5f, -z,   0, 0, -1,       0.5f - t,         0.25f),
+                    new Vertex( 0, -0.5f, -z,   0, 0, -1,       0.5f,             0.25f),
+                    new Vertex(-s, -0.5f, -z,   0, 0, -1,       0.5f + t,         0.25f),
 
-                    new Vertex(-sin60, -0.5f, -z,       -0.5f, sin60, 0,    0, 0),
-                    new Vertex(-sin60, -0.5f, z,        -0.5f, sin60, 0,    z, 0),
-                    new Vertex( 0, 1, z,                -0.5f, sin60, 0,    z, sin60),
-                    new Vertex( 0, 1, -z,               -0.5f, sin60, 0,    0, sin60),
+                    new Vertex(-s, -0.5f, -z,   -0.5f, s, 0,    0, 0),
+                    new Vertex(-s, -0.5f, z,    -0.5f, s, 0,    z, 0),
+                    new Vertex( 0, 1, z,        -0.5f, s, 0,    z, s),
+                    new Vertex( 0, 1, -z,       -0.5f, s, 0,    0, s),
 
-                    new Vertex(sin60, -0.5f, z,         0.5f, sin60, 0,     0, 0),
-                    new Vertex(sin60, -0.5f, -z,        0.5f, sin60, 0,     z, 0),
-                    new Vertex(0, 1, -z,                0.5f, sin60, 0,     z, sin60),
-                    new Vertex(0, 1, z,                 0.5f, sin60, 0,     0, sin60),
+                    new Vertex(s, -0.5f, z,     0.5f, s, 0,     0, 0),
+                    new Vertex(s, -0.5f, -z,    0.5f, s, 0,     z, 0),
+                    new Vertex(0, 1, -z,        0.5f, s, 0,     z, s),
+                    new Vertex(0, 1, z,         0.5f, s, 0,     0, s),
 
-                    new Vertex(-sin60, -0.5f, z,        0, -1,  0,          0, 0),
-                    new Vertex(-sin60, -0.5f, -z,       0, -1,  0,          z, 0),
-                    new Vertex( sin60, -0.5f, -z,       0, -1,  0,          z, sin60),
-                    new Vertex(sin60, -0.5f, z,         0, -1,  0,          0, sin60),
+                    new Vertex(-s, -0.5f, z,    0, -1,  0,      0, 0),
+                    new Vertex(-s, -0.5f, -z,   0, -1,  0,      z, 0),
+                    new Vertex( s, -0.5f, -z,   0, -1,  0,      z, s),
+                    new Vertex(s, -0.5f, z,     0, -1,  0,      0, s),
 
-                    new Vertex(-sin60_2, 0.25f, z,      0, -1,  0,          0, 0),
-                    new Vertex(-sin60_2, 0.25f, -z,     0, -1,  0,          z, 0),
-                    new Vertex( sin60_2, 0.25f, -z,     0, -1,  0,          z, sin60_2),
-                    new Vertex( sin60_2, 0.25f, z,      0, -1,  0,          0, sin60_2),
+                    new Vertex(-t, 0.25f, z,    0, -1,  0,      0, 0),
+                    new Vertex(-t, 0.25f, -z,   0, -1,  0,      z, 0),
+                    new Vertex( t, 0.25f, -z,   0, -1,  0,      z, t),
+                    new Vertex( t, 0.25f, z,    0, -1,  0,      0, t),
 
-                    new Vertex( 0, -0.5f, z,            0.5f, sin60, 0,     0, 0),
-                    new Vertex( 0, -0.5f, -z,           0.5f, sin60, 0,     z, 0),
-                    new Vertex(-sin60_2, 0.25f, -z,     0.5f, sin60, 0,     z, sin60_2),
-                    new Vertex(-sin60_2, 0.25f, z,      0.5f, sin60, 0,     0, sin60_2),
+                    new Vertex( 0, -0.5f, z,    0.5f, s, 0,     0, 0),
+                    new Vertex( 0, -0.5f, -z,   0.5f, s, 0,     z, 0),
+                    new Vertex(-t, 0.25f, -z,   0.5f, s, 0,     z, t),
+                    new Vertex(-t, 0.25f, z,    0.5f, s, 0,     0, t),
 
-                    new Vertex(0, -0.5f, -z,            -0.5f, sin60, 0,    0, 0),
-                    new Vertex(0, -0.5f, z,             -0.5f, sin60, 0,    z, 0),
-                    new Vertex(sin60_2, 0.25f, z,       -0.5f, sin60, 0,    z, sin60_2),
-                    new Vertex(sin60_2, 0.25f, -z,      -0.5f, sin60, 0,    0, sin60_2),
+                    new Vertex(0, -0.5f, -z,    -0.5f, s, 0,    0, 0),
+                    new Vertex(0, -0.5f, z,     -0.5f, s, 0,    z, 0),
+                    new Vertex(t, 0.25f, z,     -0.5f, s, 0,    z, t),
+                    new Vertex(t, 0.25f, -z,    -0.5f, s, 0,    0, t),
                 };
 
                 int[] indices = {
@@ -211,61 +223,50 @@ namespace OpenGLApp
 
                 if (texture.Data == null)
                     return -1;
-
-                //float deltaAngle = 1 / 1f;
-
-                //float angle = 0;
             }
-            z /= 2;
+            #endregion
 
-            double t0 = glfwGetTime();
+            glfwSwapInterval(1);
+            glLoadIdentity();
+            glTranslatef(0, 0, 0.96875f);
+            glScalef(height / (float)width, 1, 1);
+            glColor3b(0, 0x22, 0x11);
 
+            var speed = ((1 / 3.0f) / MathF.PI);
+            var timer = Stopwatch.StartNew();
+
+            Console.WriteLine($"High Resolution Stopwatch: {Stopwatch.IsHighResolution}");
             while (glfwWindowShouldClose(window.Id) == 0)
             {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-                double t1 = glfwGetTime();
-
-                float deltaTime = (float)(t1 - t0);
-                t0 = t1;
+                var deltaTime = (float)timer.Elapsed.TotalSeconds;
+                timer.Restart();
 
                 //model *= Matrix4x4.CreateRotationX(deltaTime);
-                model *= Matrix4x4.CreateRotationY(deltaTime);
+                model *= Matrix4x4.CreateRotationY(speed * deltaTime);
                 //model *= Matrix4x4.CreateRotationZ(deltaTime);
                 //matrix4x4 matrixtop = model * matrixstack.peek();
 
+                #region Fallback Triangle
                 program.Unbind();
-                glLoadIdentity();
-                glTranslatef(0, 0, 1 - z);
-                glScalef(height / (float)width, 1, 1);
-                //glRotatef(angle, 0, 0, 1);
-                //angle += deltaTime;
 
-                glColor3b(0, 0x22, 0x11);
                 glBegin(GL_TRIANGLES);
 
                 glVertex3f(0, 1, 0);
-                glVertex3f(sin60, -0.5f, 0);
-                glVertex3f(-sin60, -0.5f, 0);
-
-                glVertex3f(0, 1, 0);
-                glVertex3f(-sin60, -0.5f, 0);
-                glVertex3f(sin60, -0.5f, 0);
+                glVertex3f(-s, -0.5f, 0);
+                glVertex3f(s, -0.5f, 0);
 
                 glEnd();
+                #endregion
 
 
                 program.Bind();
+
                 unsafe
                 {
                     glBufferSubData(GL_UNIFORM_BUFFER, 0 * sizeof(float), 16 * sizeof(float), new IntPtr(&model.M11));
                 }
-                //glLoadIdentity();
-                glColor3b(0x66, 0x00, 0);
-                //glLoadIdentity();
-                //glScalef(0.5f * height / (float)width, 0.5f, 0.5f);
-                //glRotatef(angle, 0, 1, 0);
-                //angle += deltaAngle;
 
                 glDrawElements(GL_TRIANGLES, length, GL_UNSIGNED_INT, NULL);
 
